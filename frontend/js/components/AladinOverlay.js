@@ -33,10 +33,6 @@ export class AladinOverlay {
       <div class="comparison-view-area">
         <canvas id="comparison-canvas" width="400" height="150" style="width: 100%; height: 100%; display: block;"></canvas>
       </div>
-
-      <p class="info-story" id="comparison-footnote" style="margin-top: 6px; font-size: 12px; color: var(--color-text-muted);">
-        Comparación temporal entre el catálogo AllWISE de 2010 y las observaciones recientes de SPHEREx 2025.
-      </p>
     `;
   }
 

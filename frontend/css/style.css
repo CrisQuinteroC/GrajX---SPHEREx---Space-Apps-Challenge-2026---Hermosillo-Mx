@@ -162,7 +162,7 @@ body {
 }
 
 .control-item-coords {
-  flex: 1.4;
+  flex: 2.4;
   min-width: 240px;
 }
 
@@ -954,4 +954,8 @@ body.embed-mode .viewer-card {
   border: none;
   border-radius: 0;
   padding: 8px;
+}
+
+.search-input[aria-invalid="true"] {
+  outline: 2px solid var(--color-status-warning);
 }

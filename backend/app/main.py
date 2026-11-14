@@ -169,10 +169,10 @@ def get_spectrum(
         interpretation = "Cuerpo ultra frío (~250 K). La absorción en 3.05 µm demuestra la presencia de nubes de hielo de agua en su atmósfera."
     else:
         molecules = [
-            {"name": "Vapor de Agua (H₂O)", "wavelength": "3.05 µm", "confidence": "91%"},
-            {"name": "Dióxido de Carbono (CO₂)", "wavelength": "4.26 µm", "confidence": "82%"}
+            {"name": "Vapor de Agua (H2O)", "wavelength": "3.05 um", "confidence": "91%"},
+            {"name": "Dióxido de Carbono (CO2)", "wavelength": "4.26 um", "confidence": "82%"}
         ]
-        interpretation = "Espectro infrarrojo continuo con absorciones moleculares circumestelares."
+        interpretation = "Distribución espectral continua con líneas de absorción molecular circumestelares."
 
     return {
         "points": points,

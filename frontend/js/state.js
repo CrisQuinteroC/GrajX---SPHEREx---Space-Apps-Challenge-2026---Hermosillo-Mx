@@ -29,7 +29,7 @@ class ReactiveState {
       splitPosition: 0.5, // Para modo cortina deslizante
 
       // Identificador de objeto actual
-      activePresetId: urlParams.get('preset') || 'barnards_star',
+      activePresetId: urlParams.get('preset') || null,
 
       // Modos de accesibilidad y presentación
       embed: urlParams.get('embed') === '1' || urlParams.get('embed') === 'true',

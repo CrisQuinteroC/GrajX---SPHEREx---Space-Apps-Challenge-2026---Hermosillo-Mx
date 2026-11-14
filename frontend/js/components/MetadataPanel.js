@@ -15,7 +15,7 @@ export class MetadataPanel {
   async init() {
     this.render();
     this.attachEvents();
-    this.update();
+    await this.update();
   }
 
   render() {
@@ -34,14 +34,8 @@ export class MetadataPanel {
 
       <p class="info-story" id="meta-target-description"></p>
 
-      <div class="info-fun-fact" id="meta-fun-fact">
+      <div class="info-fun-fact" id="meta-fun-fact" style="display: none;">
         <span id="meta-fun-fact-text"></span>
-      </div>
-
-      <div class="utility-actions-row">
-        <button type="button" class="btn-secondary touch-target" id="btn-open-embed">
-          <span>Compartir / Incrustar</span>
-        </button>
       </div>
     `;
   }
@@ -61,6 +55,7 @@ export class MetadataPanel {
     const titleEl = this.container.querySelector('#meta-target-title');
     const coordsEl = this.container.querySelector('#meta-target-coords');
     const descEl = this.container.querySelector('#meta-target-description');
+    const factBox = this.container.querySelector('#meta-fun-fact');
     const factEl = this.container.querySelector('#meta-fun-fact-text');
     const qualityBadge = this.container.querySelector('#quality-indicator');
     const qualityText = this.container.querySelector('#quality-text');
@@ -68,10 +63,18 @@ export class MetadataPanel {
     if (titleEl) titleEl.textContent = current.name;
     if (coordsEl) coordsEl.textContent = `RA: ${s.ra.toFixed(4)}° | Dec: ${s.dec.toFixed(4)}° (${s.fov.toFixed(1)}' FOV)`;
     if (descEl) descEl.textContent = current.description;
-    if (factEl) factEl.textContent = current.fun_fact;
+    
+    if (factBox && factEl) {
+      if (current.fun_fact) {
+        factEl.textContent = current.fun_fact;
+        factBox.style.display = 'block';
+      } else {
+        factBox.style.display = 'none';
+      }
+    }
 
     const curFrame = s.frames && s.frames[s.currentFrameIndex];
-    if (curFrame && curFrame.quality) {
+    if (curFrame && curFrame.quality && qualityBadge && qualityText) {
       const q = curFrame.quality;
       qualityText.textContent = q.status === 'excellent' ? "Calidad Óptima" : "Luz Zodiacal";
       qualityBadge.style.color = q.status === 'excellent' ? "var(--color-status-success)" : "var(--color-status-warning)";
@@ -80,13 +83,6 @@ export class MetadataPanel {
   }
 
   attachEvents() {
-    const btnEmbed = this.container.querySelector('#btn-open-embed');
-    if (btnEmbed) {
-      btnEmbed.addEventListener('click', () => {
-        window.dispatchEvent(new CustomEvent('grajx:open-embed-modal'));
-      });
-    }
-
     store.subscribe('activePresetId', () => this.update());
     store.subscribe('ra', () => this.update());
     store.subscribe('currentFrameIndex', () => this.update());
