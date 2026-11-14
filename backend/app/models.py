@@ -134,11 +134,23 @@ class FrameItem(BaseModel):
     streaklets: list[StreakletSegment] = Field(default_factory=list)
 
 
+class TrajectoryPoint(BaseModel):
+    frame_index: int
+    mjd: float
+    obs_utc: str
+    x: float
+    y: float
+    ra_deg: float
+    dec_deg: float
+    displacement_arcsec: float = 0.0
+
+
 class FramesResponse(BaseModel):
     query: FramesQueryEcho
     data_source: str
     wcs: WCSInfo
     frames: list[FrameItem]
+    trajectory: list[TrajectoryPoint] = Field(default_factory=list)
 
 
 class SpectrumPoint(BaseModel):

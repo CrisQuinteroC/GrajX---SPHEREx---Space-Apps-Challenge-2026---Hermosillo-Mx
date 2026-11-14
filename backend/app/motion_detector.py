@@ -3,18 +3,19 @@
 from __future__ import annotations
 
 import io
+import math
 from typing import Any
 
 import imageio.v2 as imageio
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
-from scipy.ndimage import binary_dilation, binary_opening
+from scipy.ndimage import binary_dilation, binary_opening, gaussian_filter
 from skimage.feature import canny
 from skimage.filters import gaussian
 from skimage.morphology import remove_small_objects
 from skimage.transform import probabilistic_hough_line
 
-from .models import StreakletSegment
+from .models import StreakletSegment, TrajectoryPoint
 
 
 def stack_images(
@@ -177,14 +178,177 @@ def detect_streaklets(
     return segments
 
 
+def _refine_centroid(img_2d: np.ndarray, x0: float, y0: float, radius: int = 3) -> tuple[float, float]:
+    """Calcula el centroide ponderado por flujo positivo alrededor de (x0, y0)."""
+    h, w = img_2d.shape
+    cx, cy = int(round(x0)), int(round(y0))
+    x_min, x_max = max(0, cx - radius), min(w, cx + radius + 1)
+    y_min, y_max = max(0, cy - radius), min(h, cy + radius + 1)
+    if x_min >= x_max or y_min >= y_max:
+        return float(x0), float(y0)
+
+    patch = np.nan_to_num(img_2d[y_min:y_max, x_min:x_max], nan=0.0)
+    bg = float(np.percentile(patch, 20.0))
+    weights = np.clip(patch - bg, 0.0, None)
+    total = float(np.sum(weights))
+    if total <= 1e-12:
+        return float(x0), float(y0)
+
+    yy, xx = np.mgrid[y_min:y_max, x_min:x_max]
+    return float(np.sum(xx * weights) / total), float(np.sum(yy * weights) / total)
+
+
+def extract_object_trajectory(
+    exposures: list[Any],
+    target_wcs: Any,
+    pixel_scale_arcsec: float = 3.0,
+    flip_north_up: bool = True,
+    min_displacement_px: float = 1.0,
+) -> list[TrajectoryPoint]:
+    """
+    Rastrea la trayectoria temporal (x, y, RA, Dec) del astro en movimiento a lo largo
+    de la secuencia reproyectada. Retorna lista vacía si el objeto es estacionario.
+    """
+    if len(exposures) < 2:
+        return []
+
+    cube = np.stack([e.image for e in exposures], axis=0)
+    t_count, h, w = cube.shape
+    detectors = [e.detector for e in exposures]
+    diff_cube = compute_detector_aware_difference_cube(cube, detectors)
+
+    valid = diff_cube[np.isfinite(diff_cube)]
+    if valid.size == 0:
+        return []
+    med = float(np.median(valid))
+    mad = float(np.median(np.abs(valid - med)))
+    robust_std = 1.4826 * mad if mad > 0 else float(np.std(valid))
+    if robust_std <= 1e-12:
+        return []
+
+    pos_thresh = 2.2 * robust_std
+    cy_center, cx_center = (h - 1) / 2.0, (w - 1) / 2.0
+    max_center_dist = 0.45 * min(h, w)
+    yy_grid, xx_grid = np.mgrid[0:h, 0:w]
+    dist_from_center = np.hypot(xx_grid - cx_center, yy_grid - cy_center)
+    central_weight = np.where(dist_from_center <= max_center_dist, 1.0 / (1.0 + 0.02 * dist_from_center), 0.0)
+
+    smoothed_diffs: list[np.ndarray] = []
+    anchor_detections: dict[int, tuple[float, float]] = {}
+
+    for t in range(t_count):
+        sm = gaussian_filter(np.nan_to_num(diff_cube[t], nan=0.0), sigma=0.9)
+        smoothed_diffs.append(sm)
+        scored = np.where(sm > pos_thresh, sm * central_weight, 0.0)
+        best_flat = int(np.argmax(scored))
+        best_val = float(scored.flat[best_flat])
+        if best_val > 0.0:
+            py, px = divmod(best_flat, w)
+            anchor_detections[t] = _refine_centroid(cube[t], float(px), float(py), radius=3)
+
+    if len(anchor_detections) < 2:
+        return []
+
+    t_first = min(anchor_detections.keys())
+    t_last = max(anchor_detections.keys())
+    x_first, y_first = anchor_detections[t_first]
+    x_last, y_last = anchor_detections[t_last]
+
+    total_disp_px = math.hypot(x_last - x_first, y_last - y_first)
+    if total_disp_px < min_displacement_px:
+        return []
+
+    # Construir trayectoria suave para todos los frames (interpolando épocas intermedias y refinando en cube[t])
+    mjds = [float(e.mjd) for e in exposures]
+    mjd_span = max(mjds[t_last] - mjds[t_first], 1e-6)
+    fits_positions: list[tuple[float, float]] = []
+
+    for t in range(t_count):
+        frac = (mjds[t] - mjds[t_first]) / mjd_span
+        x_guess = x_first + frac * (x_last - x_first)
+        y_guess = y_first + frac * (y_last - y_first)
+
+        if t in anchor_detections and math.hypot(anchor_detections[t][0] - x_guess, anchor_detections[t][1] - y_guess) <= 6.0:
+            x_ref, y_ref = anchor_detections[t]
+        else:
+            x_ref, y_ref = _refine_centroid(cube[t], x_guess, y_guess, radius=3)
+            if math.hypot(x_ref - x_guess, y_ref - y_guess) > 4.0:
+                x_ref, y_ref = x_guess, y_guess
+        fits_positions.append((x_ref, y_ref))
+
+    x0_fits, y0_fits = fits_positions[0]
+    trajectory: list[TrajectoryPoint] = []
+    for t, (xf, yf) in enumerate(fits_positions):
+        sky = target_wcs.pixel_to_world(xf, yf)
+        disp_arcsec = math.hypot(xf - x0_fits, yf - y0_fits) * pixel_scale_arcsec
+        y_disp = (h - 1) - yf if flip_north_up else yf
+        trajectory.append(
+            TrajectoryPoint(
+                frame_index=t,
+                mjd=round(float(exposures[t].mjd), 5),
+                obs_utc=str(exposures[t].obs_utc),
+                x=round(xf, 3),
+                y=round(y_disp, 3),
+                ra_deg=round(float(sky.ra.deg), 6),
+                dec_deg=round(float(sky.dec.deg), 6),
+                displacement_arcsec=round(disp_arcsec, 2),
+            )
+        )
+
+    return trajectory
+
+
+def _draw_trajectory_on_pil(
+    img: Image.Image,
+    trajectory: list[TrajectoryPoint],
+    scale: int = 1,
+    current_index: int | None = None,
+) -> None:
+    """Dibuja la trayectoria temporal del astro sobre una imagen PIL RGBA/RGB."""
+    if len(trajectory) < 2:
+        return
+
+    draw = ImageDraw.Draw(img, "RGBA")
+    pts = [(pt.x * scale + 0.5 * scale, pt.y * scale + 0.5 * scale) for pt in trajectory]
+    line_w = max(2, scale)
+    draw.line(pts, fill=(250, 204, 21, 225), width=line_w)
+
+    # Puntos por época y flecha de dirección al final
+    r_dot = max(2, scale)
+    for idx, (px, py) in enumerate(pts):
+        is_current = current_index is not None and idx == current_index
+        if is_current:
+            r_cur = r_dot + max(2, scale)
+            draw.ellipse([px - r_cur, py - r_cur, px + r_cur, py + r_cur], outline=(56, 189, 248, 255), width=max(2, scale))
+            draw.ellipse([px - r_dot, py - r_dot, px + r_dot, py + r_dot], fill=(255, 255, 255, 255))
+        else:
+            color = (56, 189, 248, 230) if idx == 0 else (250, 204, 21, 230)
+            draw.ellipse([px - r_dot, py - r_dot, px + r_dot, py + r_dot], fill=color)
+
+    # Punta de flecha en el último segmento
+    x1, y1 = pts[-2]
+    x2, y2 = pts[-1]
+    dx, dy = x2 - x1, y2 - y1
+    seg_len = math.hypot(dx, dy)
+    if seg_len > 1e-3:
+        ux, uy = dx / seg_len, dy / seg_len
+        arrow_len = max(5.0, 2.5 * scale)
+        wing = arrow_len * 0.55
+        p_left = (x2 - ux * arrow_len - uy * wing, y2 - uy * arrow_len + ux * wing)
+        p_right = (x2 - ux * arrow_len + uy * wing, y2 - uy * arrow_len - ux * wing)
+        draw.polygon([(x2, y2), p_left, p_right], fill=(250, 204, 21, 245))
+
+
 def render_mask_overlay_png(
     mask_2d: np.ndarray,
     streaklets: list[StreakletSegment],
     flip_north_up: bool = True,
+    trajectory: list[TrajectoryPoint] | None = None,
+    current_index: int | None = None,
 ) -> bytes:
     """
-    Genera un PNG RGBA transparente con la máscara 3σ (cian) y trazas streaklets (ámbar)
-    para superponer sobre el frame base en el navegador.
+    Genera un PNG RGBA transparente con la máscara 3σ (cian), trazas streaklets (ámbar)
+    y opcionalmente la trayectoria temporal del astro para superponer sobre el frame base.
     """
     m = np.flipud(mask_2d) if flip_north_up else mask_2d
     h, w = m.shape
@@ -206,6 +370,9 @@ def render_mask_overlay_png(
                 width=2,
             )
 
+    if trajectory and len(trajectory) >= 2:
+        _draw_trajectory_on_pil(img, trajectory, scale=1, current_index=current_index)
+
     buf = io.BytesIO()
     img.save(buf, format="PNG")
     return buf.getvalue()
@@ -222,9 +389,11 @@ def create_animated_gif(
     frames: list[np.ndarray],
     metadata_list: list[dict[str, Any]],
     fps: float = 4.0,
+    trajectory: list[TrajectoryPoint] | None = None,
 ) -> bytes:
     """
-    Genera un GIF animado en memoria con estampado de época (UTC/MJD), detector y λ.
+    Genera un GIF animado en memoria con estampado de época (UTC/MJD), detector, λ
+    y la trayectoria del astro en movimiento si está disponible.
     """
     if not frames:
         raise ValueError("Cannot create animated GIF from an empty frame list.")
@@ -232,13 +401,16 @@ def create_animated_gif(
     stamped_frames: list[np.ndarray] = []
     font = ImageFont.load_default()
 
-    for frame_arr, meta in zip(frames, metadata_list):
+    for idx, (frame_arr, meta) in enumerate(zip(frames, metadata_list)):
         pil_img = _to_rgb_pil(frame_arr)
         w, h = pil_img.size
         # Escalar de forma entera si la imagen es compacta para que el texto sea legible
         scale = max(1, 360 // max(w, 1))
         if scale > 1:
             pil_img = pil_img.resize((w * scale, h * scale), resample=Image.Resampling.NEAREST)
+
+        if trajectory and len(trajectory) >= 2:
+            _draw_trajectory_on_pil(pil_img, trajectory, scale=scale, current_index=idx)
 
         draw = ImageDraw.Draw(pil_img, "RGBA")
         obs_date = str(meta.get("obs_utc", ""))[:10]

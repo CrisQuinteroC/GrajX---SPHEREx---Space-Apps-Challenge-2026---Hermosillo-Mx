@@ -181,6 +181,7 @@ cython_debug/
 .cursorindexingignore
 prompt.md  
 AGENTS.md
+backend/context/
 
 # GrajX SPHEREx data caches & heavy FITS binaries
 data/cache/

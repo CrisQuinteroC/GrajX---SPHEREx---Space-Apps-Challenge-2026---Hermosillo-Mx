@@ -267,10 +267,10 @@ DEBUG_HTML = """<!DOCTYPE html>
           <div class="field">
             <label for="modeSelect">Modo</label>
             <select id="modeSelect">
+              <option value="rgb" selected>rgb (Falso Color D56/D34/D12)</option>
               <option value="blink">blink (Secuencia)</option>
               <option value="diff">diff (Resta I_t - I_ref)</option>
               <option value="stack">stack (Mediana)</option>
-              <option value="rgb">rgb (Falso Color D56/D34/D12)</option>
             </select>
           </div>
           <div class="field">
@@ -310,6 +310,10 @@ DEBUG_HTML = """<!DOCTYPE html>
           <input id="maskCheck" type="checkbox" checked />
           <label for="maskCheck" style="margin:0;">Incluir máscara 3σ y streaklets (<code>include_mask=true</code>)</label>
         </div>
+        <div class="field" style="display:flex; align-items:center; gap:8px;">
+          <input id="trajectoryCheck" type="checkbox" checked />
+          <label for="trajectoryCheck" style="margin:0;">Mostrar trayectoria del astro con el tiempo</label>
+        </div>
 
         <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;">
           <button class="primary" id="loadFramesBtn">Cargar Secuencia</button>
@@ -336,6 +340,7 @@ DEBUG_HTML = """<!DOCTYPE html>
             <div class="canvas-wrap" id="canvasWrap" title="Haz clic sobre cualquier objeto para extraer su espectro NIR (0.75–5.0 µm)">
               <img id="baseImg" alt="SPHEREx frame" />
               <img id="maskImg" alt="3-sigma mask overlay" />
+              <svg id="trajectorySvg" style="position:absolute; inset:0; width:100%; height:100%; pointer-events:none;"></svg>
               <div id="crosshair"></div>
             </div>
             <div class="player-controls">
@@ -359,6 +364,7 @@ DEBUG_HTML = """<!DOCTYPE html>
               <tr><td>WCS (px / scale)</td><td id="metaWcs">-</td></tr>
               <tr><td>Calidad (FLAGS)</td><td id="metaQuality">-</td></tr>
               <tr><td>Streaklets</td><td id="metaStreaklets">-</td></tr>
+              <tr><td>Trayectoria</td><td id="metaTrajectory">-</td></tr>
             </table>
             <div style="margin-top:12px;">
               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
@@ -454,6 +460,59 @@ DEBUG_HTML = """<!DOCTYPE html>
       const flagsTxt = q.active_flags.length ? q.active_flags.join(", ") : "ninguna";
       $("metaQuality").innerHTML = `<span class="pill pill-${q.status}">${q.status.toUpperCase()}</span> ${(q.contamination_fraction * 100).toFixed(2)}% (${flagsTxt})`;
       $("metaStreaklets").textContent = `${f.streaklets.length} detectados`;
+      renderTrajectoryOverlay(data, state.frameIndex);
+    }
+
+    function renderTrajectoryOverlay(data, activeIdx) {
+      const svg = $("trajectorySvg");
+      const traj = (data && data.trajectory) ? data.trajectory : [];
+      if (traj.length < 2) {
+        svg.innerHTML = "";
+        $("metaTrajectory").textContent = "Estacionario (< 1 px)";
+        return;
+      }
+      const last = traj[traj.length - 1];
+      $("metaTrajectory").textContent = `Δ ${last.displacement_arcsec.toFixed(2)}" (${traj.length} épocas)`;
+      if (!$("trajectoryCheck").checked) {
+        svg.innerHTML = "";
+        return;
+      }
+
+      const w = data.wcs.width;
+      const h = data.wcs.height;
+      svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+
+      const pts = traj.map(p => `${(p.x + 0.5).toFixed(2)},${(p.y + 0.5).toFixed(2)}`).join(" ");
+      const pPrev = traj[traj.length - 2];
+      const pEnd = traj[traj.length - 1];
+      const dx = pEnd.x - pPrev.x;
+      const dy = pEnd.y - pPrev.y;
+      const segLen = Math.hypot(dx, dy) || 1;
+      const ux = dx / segLen, uy = dy / segLen;
+      const aLen = Math.max(2.6, Math.min(w, h) * 0.025);
+      const wing = aLen * 0.55;
+      const ex = pEnd.x + 0.5, ey = pEnd.y + 0.5;
+      const ax1 = (ex - ux * aLen - uy * wing).toFixed(2);
+      const ay1 = (ey - uy * aLen + ux * wing).toFixed(2);
+      const ax2 = (ex - ux * aLen + uy * wing).toFixed(2);
+      const ay2 = (ey - uy * aLen - ux * wing).toFixed(2);
+
+      let html = `<polyline points="${pts}" fill="none" stroke="#facc15" stroke-width="1.3" stroke-dasharray="2.4 1.4" stroke-opacity="0.92" />`;
+      html += `<polygon points="${ex.toFixed(2)},${ey.toFixed(2)} ${ax1},${ay1} ${ax2},${ay2}" fill="#facc15" />`;
+
+      traj.forEach((p, idx) => {
+        const cx = (p.x + 0.5).toFixed(2);
+        const cy = (p.y + 0.5).toFixed(2);
+        const isCur = idx === activeIdx;
+        if (isCur) {
+          html += `<circle cx="${cx}" cy="${cy}" r="3.2" fill="none" stroke="#38bdf8" stroke-width="1.1" />`;
+          html += `<circle cx="${cx}" cy="${cy}" r="1.4" fill="#ffffff" />`;
+        } else {
+          const fill = idx === 0 ? "#38bdf8" : "#facc15";
+          html += `<circle cx="${cx}" cy="${cy}" r="1.15" fill="${fill}" fill-opacity="0.9" />`;
+        }
+      });
+      svg.innerHTML = html;
     }
 
     function restartTimer() {
@@ -580,6 +639,9 @@ DEBUG_HTML = """<!DOCTYPE html>
 
     $("fovInput").addEventListener("input", () => {
       $("fovVal").textContent = parseFloat($("fovInput").value).toFixed(1);
+    });
+    $("trajectoryCheck").addEventListener("change", () => {
+      if (state.framesData) renderTrajectoryOverlay(state.framesData, state.frameIndex);
     });
     $("fpsInput").addEventListener("change", restartTimer);
     $("frameSlider").addEventListener("input", (e) => {

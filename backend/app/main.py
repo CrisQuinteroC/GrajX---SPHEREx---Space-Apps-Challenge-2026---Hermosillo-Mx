@@ -54,6 +54,7 @@ from .models import (
     SpectrumResponse,
     StreakletSegment,
     StretchMethod,
+    TrajectoryPoint,
     ViewMode,
     WCSInfo,
 )
@@ -62,6 +63,7 @@ from .motion_detector import (
     create_animated_gif,
     detect_moving_objects_mask,
     detect_streaklets,
+    extract_object_trajectory,
     render_mask_overlay_png,
     stack_images,
 )
@@ -159,14 +161,22 @@ def _save_png_array(arr: np.ndarray, out_path: Path) -> None:
 
 def _build_rendered_sequence(
     reprojected: list[ReprojectedExposure],
+    target_wcs: Any,
+    pixel_scale_arcsec: float,
     mode: ViewMode,
     detector: DetectorFilter,
     stretch: StretchMethod,
     include_mask: bool,
-) -> tuple[list[np.ndarray], list[ReprojectedExposure], list[np.ndarray | None], list[list[StreakletSegment]]]:
+) -> tuple[
+    list[np.ndarray],
+    list[ReprojectedExposure],
+    list[np.ndarray | None],
+    list[list[StreakletSegment]],
+    list[TrajectoryPoint],
+]:
     """
-    Genera los arrays uint8 (2D o RGB), metadatos asociados, máscaras 3σ y streaklets
-    para la combinación solicitada de modo, detector y estiramiento.
+    Genera los arrays uint8 (2D o RGB), metadatos asociados, máscaras 3σ, streaklets
+    y trayectoria temporal del astro para la combinación solicitada.
     """
     if mode == ViewMode.rgb:
         rgb_pairs = build_false_color_rgb_frames(reprojected, stretch=stretch)
@@ -175,6 +185,9 @@ def _build_rendered_sequence(
 
         masks_out: list[np.ndarray | None] = [None] * len(metas)
         streaklets_out: list[list[StreakletSegment]] = [[] for _ in metas]
+        trajectory = extract_object_trajectory(
+            metas, target_wcs, pixel_scale_arcsec=pixel_scale_arcsec, flip_north_up=True
+        )
         if include_mask and metas:
             cube = np.stack([m.image for m in metas], axis=0)
             diff_cube = compute_detector_aware_difference_cube(cube, [m.detector for m in metas])
@@ -182,7 +195,7 @@ def _build_rendered_sequence(
             for idx, meta in enumerate(metas):
                 masks_out[idx] = masks_3d[idx]
                 streaklets_out[idx] = detect_streaklets(meta.image)
-        return rendered_arrays, metas, masks_out, streaklets_out
+        return rendered_arrays, metas, masks_out, streaklets_out, trajectory
 
     selected = filter_exposures_by_detector(reprojected, detector.value)
     if not selected:
@@ -221,10 +234,13 @@ def _build_rendered_sequence(
         )
         rendered_u8 = normalize_to_uint8(stacked_img, stretch=stretch, flip_north_up=True)
         streaklets = [detect_streaklets(stacked_img)] if include_mask else [[]]
-        return [rendered_u8], [stack_meta], [None], streaklets
+        return [rendered_u8], [stack_meta], [None], streaklets, []
 
     diff_cube = compute_detector_aware_difference_cube(cube, [e.detector for e in selected])
     masks_3d = detect_moving_objects_mask(diff_cube) if include_mask else None
+    trajectory = extract_object_trajectory(
+        selected, target_wcs, pixel_scale_arcsec=pixel_scale_arcsec, flip_north_up=True
+    )
 
     rendered_arrays = []
     masks_out = []
@@ -244,7 +260,7 @@ def _build_rendered_sequence(
             masks_out.append(masks_3d[idx] if masks_3d is not None else None)
             streaklets_out.append(detect_streaklets(exp.image) if include_mask else [])
 
-    return rendered_arrays, selected, masks_out, streaklets_out
+    return rendered_arrays, selected, masks_out, streaklets_out, trajectory
 
 
 @app.get("/", include_in_schema=False)
@@ -319,7 +335,7 @@ def get_frames(
     ra: str = Query(..., description="RA en grados decimales, sexagesimal, par completo o nombre"),
     dec: str | None = Query(None, description="Dec en grados decimales o sexagesimal"),
     fov: float = Query(DEFAULT_FOV_ARCMIN, description="Campo de visión en arcmin (1.0–30.0)"),
-    mode: ViewMode = Query(ViewMode.blink, description="Modo visual: blink, stack, diff, rgb"),
+    mode: ViewMode = Query(ViewMode.rgb, description="Modo visual: rgb (color por defecto), blink, stack, diff"),
     detector: DetectorFilter = Query(DetectorFilter.all, description="Filtro de detector: all o D1..D6"),
     stretch: StretchMethod = Query(StretchMethod.asinh, description="Estiramiento: asinh, zscale, percentile"),
     include_mask: bool = Query(False, description="Generar máscara de movimiento 3σ y streaklets"),
@@ -335,8 +351,10 @@ def get_frames(
         source=source,
     )
 
-    rendered_arrays, metas, masks_list, streaklets_list = _build_rendered_sequence(
+    rendered_arrays, metas, masks_list, streaklets_list, trajectory = _build_rendered_sequence(
         reprojected=reprojected,
+        target_wcs=target_wcs,
+        pixel_scale_arcsec=eff_scale,
         mode=mode,
         detector=detector,
         stretch=stretch,
@@ -357,13 +375,17 @@ def get_frames(
         mask_url = None
         if include_mask and mask_2d is not None:
             mask_fname = f"mask_{idx:03d}_{mode.value}_{detector.value}.png"
-            mask_bytes = render_mask_overlay_png(mask_2d, streaklets, flip_north_up=True)
+            mask_bytes = render_mask_overlay_png(
+                mask_2d, streaklets, flip_north_up=True, trajectory=trajectory, current_index=idx
+            )
             (asset_dir / mask_fname).write_bytes(mask_bytes)
             mask_url = f"/api/assets/{cache_key}/{mask_fname}"
-        elif include_mask and streaklets:
+        elif include_mask and (streaklets or len(trajectory) >= 2):
             mask_fname = f"mask_{idx:03d}_{mode.value}_{detector.value}.png"
             empty_mask = np.zeros(shape_out, dtype=bool)
-            mask_bytes = render_mask_overlay_png(empty_mask, streaklets, flip_north_up=True)
+            mask_bytes = render_mask_overlay_png(
+                empty_mask, streaklets, flip_north_up=True, trajectory=trajectory, current_index=idx
+            )
             (asset_dir / mask_fname).write_bytes(mask_bytes)
             mask_url = f"/api/assets/{cache_key}/{mask_fname}"
 
@@ -409,6 +431,7 @@ def get_frames(
             cdelt2=float(target_wcs.wcs.cdelt[1]),
         ),
         frames=frame_items,
+        trajectory=trajectory,
     )
 
 
@@ -469,7 +492,7 @@ def export_gif(
     ra: str = Query(..., description="RA en grados decimales, sexagesimal o nombre"),
     dec: str | None = Query(None, description="Dec en grados decimales o sexagesimal"),
     fov: float = Query(DEFAULT_FOV_ARCMIN, description="Campo de visión en arcmin (1.0–30.0)"),
-    mode: ViewMode = Query(ViewMode.blink, description="Modo visual: blink, stack, diff, rgb"),
+    mode: ViewMode = Query(ViewMode.rgb, description="Modo visual: rgb (color por defecto), blink, stack, diff"),
     detector: DetectorFilter = Query(DetectorFilter.all, description="Filtro de detector: all o D1..D6"),
     stretch: StretchMethod = Query(StretchMethod.asinh, description="Estiramiento: asinh, zscale, percentile"),
     fps: float = Query(4.0, description="Cuadros por segundo del GIF (0.5–15.0)"),
@@ -481,14 +504,16 @@ def export_gif(
         raise HTTPException(status_code=400, detail="Invalid fps: must be between 0.5 and 15.0.")
 
     ra_deg, dec_deg = _parse_coords_or_400(ra, dec)
-    reprojected, _, _, _, _, _ = _resolve_reprojected_or_http(
+    reprojected, target_wcs, _, eff_scale, _, _ = _resolve_reprojected_or_http(
         ra_deg=ra_deg,
         dec_deg=dec_deg,
         fov_arcmin=fov_val,
         source=source,
     )
-    rendered_arrays, metas, _, _ = _build_rendered_sequence(
+    rendered_arrays, metas, _, _, trajectory = _build_rendered_sequence(
         reprojected=reprojected,
+        target_wcs=target_wcs,
+        pixel_scale_arcsec=eff_scale,
         mode=mode,
         detector=detector,
         stretch=stretch,
@@ -505,7 +530,7 @@ def export_gif(
         }
         for m in metas
     ]
-    gif_bytes = create_animated_gif(rendered_arrays, meta_dicts, fps=fps)
+    gif_bytes = create_animated_gif(rendered_arrays, meta_dicts, fps=fps, trajectory=trajectory)
     filename = f"spherex_{ra_deg:.4f}_{dec_deg:.4f}_{mode.value}.gif"
     return Response(
         content=gif_bytes,

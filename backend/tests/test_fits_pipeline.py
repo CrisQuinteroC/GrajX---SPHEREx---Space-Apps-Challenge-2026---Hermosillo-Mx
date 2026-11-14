@@ -22,6 +22,7 @@ from backend.app.motion_detector import (
     compute_detector_aware_difference_cube,
     create_animated_gif,
     detect_moving_objects_mask,
+    extract_object_trajectory,
     stack_images,
 )
 from backend.app.presets import PRESET_TARGETS, generate_spherex_mef_sequence
@@ -56,6 +57,11 @@ class TestFitsPipeline(unittest.TestCase):
 
             # Barnard's star se mueve 10.3"/año entre épocas -> debe detectarse cambio en época 0 vs 3
             self.assertTrue(np.any(mask_cube[0]) or np.any(mask_cube[-1]))
+
+            # Trayectoria temporal de Barnard's Star (> 10" en 1.5 años)
+            traj = extract_object_trajectory(d1_frames, target_wcs, pixel_scale_arcsec=eff_scale, flip_north_up=True)
+            self.assertEqual(len(traj), 4)
+            self.assertGreater(traj[-1].displacement_arcsec, 8.0)
 
             # Median stack debe eliminar rayos cósmicos transitorios
             stacked = stack_images(cube, method="median")

@@ -85,7 +85,22 @@ class TestBackendApi(unittest.TestCase):
             mask_resp = client.get(first["mask_overlay_url"])
             self.assertEqual(mask_resp.status_code, 200)
 
-            # 2. Modos stack y rgb para WISE 0855
+            # 2. Por defecto /api/frames debe usar modo rgb (color) y devolver trayectoria para astros en movimiento
+            default_resp = client.get("/api/frames", params={"ra": "barnards_star"})
+            self.assertEqual(default_resp.status_code, 200)
+            default_body = default_resp.json()
+            self.assertEqual(default_body["query"]["mode"], "rgb")
+            self.assertEqual(len(default_body["frames"]), 4)
+            self.assertEqual(len(default_body["trajectory"]), 4)
+            self.assertGreater(default_body["trajectory"][-1]["displacement_arcsec"], 8.0)
+
+            # Objeto estacionario variable (RW Aurigae) no debe generar trayectoria falsa
+            rw_resp = client.get("/api/frames", params={"ra": "rw_aurigae"})
+            self.assertEqual(rw_resp.status_code, 200)
+            self.assertEqual(rw_resp.json()["query"]["mode"], "rgb")
+            self.assertEqual(rw_resp.json()["trajectory"], [])
+
+            # 3. Modos stack y rgb explícito para WISE 0855
             stack_resp = client.get(
                 "/api/frames",
                 params={"ra": "133.79513", "dec": "-7.24515", "mode": "stack", "detector": "D5"},
@@ -99,6 +114,8 @@ class TestBackendApi(unittest.TestCase):
             )
             self.assertEqual(rgb_resp.status_code, 200)
             self.assertEqual(len(rgb_resp.json()["frames"]), 4)
+            self.assertEqual(len(rgb_resp.json()["trajectory"]), 4)
+            self.assertGreater(rgb_resp.json()["trajectory"][-1]["displacement_arcsec"], 5.0)
 
             # 3. Espectro al vuelo y error 400 fuera de FOV
             spec = client.get(

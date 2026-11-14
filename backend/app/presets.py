@@ -27,7 +27,7 @@ PRESET_TARGETS: dict[str, PresetTarget] = {
         dec_dms="+04° 41' 36.1\"",
         default_fov_arcmin=6.0,
         phenomenon="Movimiento propio más rápido conocido (10.3\"/año) + paralaje",
-        recommended_mode=ViewMode.diff,
+        recommended_mode=ViewMode.rgb,
         recommended_detector=DetectorFilter.all,
     ),
     "epsilon_indi_b": PresetTarget(
@@ -40,7 +40,7 @@ PRESET_TARGETS: dict[str, PresetTarget] = {
         dec_dms="-56° 46' 55\"",
         default_fov_arcmin=6.0,
         phenomenon="Alto movimiento propio (4.7\"/año) + movimiento orbital del par binario",
-        recommended_mode=ViewMode.blink,
+        recommended_mode=ViewMode.rgb,
         recommended_detector=DetectorFilter.D4,
     ),
     "wise_0855": PresetTarget(
@@ -53,7 +53,7 @@ PRESET_TARGETS: dict[str, PresetTarget] = {
         dec_dms="-07° 14' 42.53\"",
         default_fov_arcmin=6.0,
         phenomenon="Movimiento rápido (8.1\"/año) y emisión extrema solo en infrarrojo (3.5–5.0 µm)",
-        recommended_mode=ViewMode.blink,
+        recommended_mode=ViewMode.rgb,
         recommended_detector=DetectorFilter.D5,
     ),
     "rw_aurigae": PresetTarget(
@@ -66,7 +66,7 @@ PRESET_TARGETS: dict[str, PresetTarget] = {
         dec_dms="+30° 24' 04.8\"",
         default_fov_arcmin=6.0,
         phenomenon="Variabilidad fotométrica abrupta (oscurecimiento por polvo circumestelar)",
-        recommended_mode=ViewMode.blink,
+        recommended_mode=ViewMode.rgb,
         recommended_detector=DetectorFilter.all,
     ),
     "r_draconis": PresetTarget(
@@ -79,7 +79,7 @@ PRESET_TARGETS: dict[str, PresetTarget] = {
         dec_dms="+66° 45' 17.9\"",
         default_fov_arcmin=6.0,
         phenomenon="Pulsación periódica de gran amplitud (~245 días, cambio de brillo + espectro)",
-        recommended_mode=ViewMode.diff,
+        recommended_mode=ViewMode.rgb,
         recommended_detector=DetectorFilter.all,
     ),
 }
