@@ -162,21 +162,26 @@ def get_spectrum(
     molecules = []
     if is_wise:
         molecules = [
-            {"name": "Hielo de Agua (H₂O)", "wavelength": "3.05 µm", "confidence": "98%"},
-            {"name": "Metano (CH₄)", "wavelength": "3.30 µm", "confidence": "94%"},
-            {"name": "Monóxido de Carbono (CO)", "wavelength": "4.67 µm", "confidence": "87%"}
+            {"id": "water_ice", "name": "Hielo de Agua (H₂O)", "wavelength": "3.05 µm", "confidence": "98%"},
+            {"id": "methane", "name": "Metano (CH₄)", "wavelength": "3.30 µm", "confidence": "94%"},
+            {"id": "co", "name": "Monóxido de Carbono (CO)", "wavelength": "4.67 µm", "confidence": "87%"}
         ]
+        interpretation_id = "cold_body"
         interpretation = "Cuerpo ultra frío (~250 K). La absorción en 3.05 µm demuestra la presencia de nubes de hielo de agua en su atmósfera."
     else:
         molecules = [
-            {"name": "Vapor de Agua (H₂O)", "wavelength": "3.05 µm", "confidence": "91%"},
-            {"name": "Dióxido de Carbono (CO₂)", "wavelength": "4.26 µm", "confidence": "82%"}
+            {"id": "water_vapor", "name": "Vapor de Agua (H₂O)", "wavelength": "3.05 µm", "confidence": "91%"},
+            {"id": "co2", "name": "Dióxido de Carbono (CO₂)", "wavelength": "4.26 µm", "confidence": "82%"}
         ]
+        interpretation_id = "continuous"
         interpretation = "Espectro infrarrojo continuo con absorciones moleculares circumestelares."
 
     return {
         "points": points,
         "molecules": molecules,
+        # `id` / `interpretation_id` son estables: el frontend los traduce según el idioma activo.
+        # Los textos en español se conservan solo como respaldo.
+        "interpretation_id": interpretation_id,
         "interpretation": interpretation
     }
 

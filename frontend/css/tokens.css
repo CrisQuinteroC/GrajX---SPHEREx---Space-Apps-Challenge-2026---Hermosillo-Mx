@@ -85,3 +85,26 @@
   --transition-fast: 150ms ease;
   --transition-normal: 250ms ease;
 }
+
+/* ========================================================
+      LIGHT MODE VARIABLES
+      ======================================================== */
+.light-mode {
+  --color-bg-base: #F8FAFC;          /* Light background */
+  --color-bg-surface: #FFFFFF;       /* Cards and panels */
+  --color-bg-subtle: #E5E7EB;        /* Subtle controls */
+  --color-bg-subtle-hover: #D1D5DB;  /* Hover */
+  --color-border-warm: #D1D5DB;      /* Warm borders */
+  --color-text-main: #111827;        /* Dark text */
+  --color-text-secondary: #374151;   /* Secondary text */
+  --color-text-muted: #6B7280;       /* Muted */
+  --color-curiosity-cyan: #1D4ED8;   /* Primary accent */
+  --color-curiosity-cyan-rgb: 29, 78, 216;
+  --color-curiosity-indigo: #6366F1; /* Secondary accent */
+  --color-hope-aurora: #10B981;      /* Success */
+  --color-hope-dawn: #F59E0B;        /* Warning */
+  --color-thermal-coral: #EF4444;    /* Error */
+  --color-diff-positive: #10B981;    /* Diff positive */
+  --color-diff-negative: #EF4444;    /* Diff negative */
+  --color-canvas-bg: #FFFFFF;        /* Canvas */
+}

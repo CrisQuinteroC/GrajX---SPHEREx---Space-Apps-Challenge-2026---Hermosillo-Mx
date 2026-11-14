@@ -6,6 +6,7 @@
 
 import { store } from '../state.js';
 import { api } from '../api.js';
+import { i18n } from '../i18n.js';
 
 export class SkySearchBar {
   constructor(container) {
@@ -16,64 +17,59 @@ export class SkySearchBar {
 
   async init() {
     this.renderSkeleton();
+    this.attachDomEvents();
+    this.attachGlobalEvents(); // una sola vez: store + idioma
+
     this.targetList = await api.getPresets();
     this.populateTargetSelect();
-    this.attachEvents();
   }
 
   renderSkeleton() {
+    const fov = store.getState().fov;
     this.container.innerHTML = `
       <div class="search-control-bar">
         <!-- Selector desde Lista de Datos -->
         <div class="control-item control-item-select">
-          <label for="target-list-select" class="control-label">Objeto de la lista:</label>
+          <label for="target-list-select" class="control-label">${i18n.t('search.objectLabel')}</label>
           <div class="select-wrapper">
-            <select id="target-list-select" class="target-select" aria-label="Seleccionar objeto de la lista">
-              <option value="">Cargando lista...</option>
+            <select id="target-list-select" class="target-select" aria-label="${i18n.t('search.objectAria')}">
+              <option value="">${i18n.t('search.objectPlaceholder')}</option>
             </select>
           </div>
         </div>
 
         <!-- Búsqueda o Entrada de Coordenadas Manuales -->
         <div class="control-item control-item-coords">
-          <label for="sky-search-input" class="control-label">Coordenadas (RA, Dec) o Nombre:</label>
+          <label for="sky-search-input" class="control-label">${i18n.t('search.coordsLabel')}</label>
           <div class="input-wrapper">
-            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
               <circle cx="11" cy="11" r="8"></circle>
               <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
-            <input 
-              type="text" 
-              id="sky-search-input" 
-              class="search-input" 
-              placeholder="Ej. 269.452, 4.693 o nombre..."
-              aria-label="Coordenadas celestes o nombre del objeto"
+            <input
+              type="text"
+              id="sky-search-input"
+              class="search-input"
+              placeholder="${i18n.t('search.coordsPlaceholder')}"
+              aria-label="${i18n.t('search.coordsAria')}"
             />
           </div>
         </div>
 
         <!-- Control de Campo de Visión (FOV) -->
         <div class="control-item control-item-fov">
-          <label for="fov-slider" class="control-label">Campo de visión (FOV):</label>
+          <label for="fov-slider" class="control-label">${i18n.t('search.fovLabel')}</label>
           <div class="fov-wrapper">
-            <input 
-              type="range" 
-              id="fov-slider" 
-              class="fov-slider" 
-              min="2" 
-              max="30" 
-              step="1" 
-              value="${store.getState().fov}"
-            />
-            <span id="fov-display-pill" class="fov-value-pill">${store.getState().fov.toFixed(0)}'</span>
+            <input type="range" id="fov-slider" class="fov-slider" min="2" max="30" step="1" value="${fov}" />
+            <span id="fov-display-pill" class="fov-value-pill">${fov.toFixed(0)}'</span>
           </div>
         </div>
 
         <!-- Botón de Ejecución -->
         <div class="control-item control-item-action">
-          <label class="control-label" style="visibility: hidden;">Acción</label>
+          <label class="control-label" aria-hidden="true" style="visibility: hidden;">&nbsp;</label>
           <button type="button" id="btn-submit-search" class="btn-primary">
-            <span>Cargar datos</span>
+            <span>${i18n.t('search.loadBtn')}</span>
           </button>
         </div>
       </div>
@@ -85,29 +81,31 @@ export class SkySearchBar {
     if (!select) return;
 
     const currentPreset = store.getState().activePresetId;
+    const isCustom = !currentPreset;
 
     select.innerHTML = `
-      <optgroup label="Objetos disponibles">
+      <optgroup label="${i18n.t('search.optgroupTargets')}">
         ${this.targetList.map(item => `
           <option value="${item.id}" ${item.id === currentPreset ? 'selected' : ''}>
-            ${item.name} (${item.friendly_title})
+            ${item.name} (${i18n.presetText(item, 'title', item.friendly_title)})
           </option>
         `).join('')}
       </optgroup>
-      <optgroup label="Personalizado">
-        <option value="custom">Coordenadas manuales...</option>
+      <optgroup label="${i18n.t('search.optgroupCustom')}">
+        <option value="custom" ${isCustom ? 'selected' : ''}>${i18n.t('search.customOption')}</option>
       </optgroup>
     `;
 
     // Sincronizar input de texto con las coordenadas actuales
     const s = store.getState();
     const input = this.container.querySelector('#sky-search-input');
-    if (input) {
+    if (input && !input.value) {
       input.value = `${s.ra.toFixed(4)}, ${s.dec.toFixed(4)}`;
     }
   }
 
-  attachEvents() {
+  /** Eventos ligados al DOM actual (se vuelven a ligar tras cada render). */
+  attachDomEvents() {
     const select = this.container.querySelector('#target-list-select');
     const input = this.container.querySelector('#sky-search-input');
     const searchBtn = this.container.querySelector('#btn-submit-search');
@@ -135,10 +133,8 @@ export class SkySearchBar {
           currentFrameIndex: 0
         });
 
-        if (fovSlider && fovPill) {
-          fovSlider.value = item.recommended_fov || 5.0;
-          fovPill.textContent = `${(item.recommended_fov || 5.0).toFixed(0)}'`;
-        }
+        fovSlider.value = item.recommended_fov || 5.0;
+        fovPill.textContent = `${(item.recommended_fov || 5.0).toFixed(0)}'`;
       }
     });
 
@@ -155,10 +151,12 @@ export class SkySearchBar {
       if (!val) return;
 
       // Buscar si coincide con el nombre de algún elemento de la lista
-      const matched = this.targetList.find(t => 
-        t.name.toLowerCase().includes(val) || 
+      // (nombre propio, id o título en CUALQUIER idioma)
+      const matched = this.targetList.find(t =>
+        t.name.toLowerCase().includes(val) ||
         t.id.toLowerCase().includes(val) ||
-        (t.friendly_title && t.friendly_title.toLowerCase().includes(val))
+        (t.friendly_title && t.friendly_title.toLowerCase().includes(val)) ||
+        i18n.presetText(t, 'title').toLowerCase().includes(val)
       );
 
       if (matched) {
@@ -172,6 +170,8 @@ export class SkySearchBar {
           mode: matched.recommended_mode || 'diff',
           detector: matched.recommended_detector || 'all'
         });
+        fovSlider.value = matched.recommended_fov || 5.0;
+        fovPill.textContent = `${(matched.recommended_fov || 5.0).toFixed(0)}'`;
         return;
       }
 
@@ -191,25 +191,38 @@ export class SkySearchBar {
         }
       }
 
-      alert("Formato no reconocido. Selecciona de la lista o escribe coordenadas numéricas (ej. 269.45, 4.69).");
+      alert(i18n.t('search.formatError'));
     };
 
     searchBtn.addEventListener('click', execute);
     input.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') execute();
     });
+  }
 
-    // Suscribirse al estado externo
+  /** Suscripciones globales: se registran UNA sola vez (antes se duplicaban en cada cambio de idioma). */
+  attachGlobalEvents() {
     store.subscribe('activePresetId', (id) => {
-      if (select && id) {
-        select.value = id;
-      }
+      const select = this.container.querySelector('#target-list-select');
+      if (select) select.value = id || 'custom';
     });
 
     store.subscribe('ra', (ra, s) => {
+      const input = this.container.querySelector('#sky-search-input');
       if (input && !s.activePresetId) {
         input.value = `${s.ra.toFixed(4)}, ${s.dec.toFixed(4)}`;
       }
+    });
+
+    // Actualizar UI cuando cambia el idioma, conservando lo que el usuario había escrito
+    window.addEventListener('grajx:locale-changed', () => {
+      const prevInput = this.container.querySelector('#sky-search-input');
+      const prevValue = prevInput ? prevInput.value : '';
+      this.renderSkeleton();
+      this.populateTargetSelect();
+      const input = this.container.querySelector('#sky-search-input');
+      if (input && prevValue) input.value = prevValue;
+      this.attachDomEvents();
     });
   }
 }

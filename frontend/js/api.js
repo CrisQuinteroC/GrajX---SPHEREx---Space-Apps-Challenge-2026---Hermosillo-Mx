@@ -126,10 +126,10 @@ export class ApiClient {
 
   generateSyntheticFrames(ra, dec, fov, mode, detector) {
     const dates = [
-      { epoch: "Época 1 (Junio 2025)", mjd: 60841.5, date: "2025-06-15" },
-      { epoch: "Época 2 (Diciembre 2025)", mjd: 61025.2, date: "2025-12-15" },
-      { epoch: "Época 3 (Junio 2026)", mjd: 61206.8, date: "2026-06-15" },
-      { epoch: "Época 4 (Diciembre 2026)", mjd: 61390.1, date: "2026-12-15" }
+      { epoch: "Epoch 1 (June 2025)", mjd: 60841.5, date: "2025-06-15" },
+      { epoch: "Epoch 2 (December 2025)", mjd: 61025.2, date: "2025-12-15" },
+      { epoch: "Epoch 3 (June 2026)", mjd: 61206.8, date: "2026-06-15" },
+      { epoch: "Epoch 4 (December 2026)", mjd: 61390.1, date: "2026-12-15" }
     ];
 
     const isBarnard = Math.abs(ra - 269.45208) < 0.1;
@@ -177,10 +177,9 @@ export class ApiClient {
         quality: {
           status: index === 2 && isBarnard ? "warning" : "excellent",
           score_percent: index === 2 && isBarnard ? 88 : 99,
-          flags: index === 2 && isBarnard ? ["Luz zodiacal difusa"] : [],
+          flags: index === 2 && isBarnard ? ["diffuse_zodiacal_light"] : [],
           message: index === 2 && isBarnard 
-            ? "Dispersión zodiacal corregida." 
-            : "Calibración nominal sin artefactos."
+            ? "Zodiacal scattering corrected.": "Nominal calibration, no artifacts."
         }
       };
     });
@@ -228,20 +227,22 @@ export class ApiClient {
 
     const detectedMolecules = [];
     if (isWise0855) {
-      detectedMolecules.push({ name: "Hielo de Agua (H2O)", wavelength: "3.05 um", confidence: "98%" });
-      detectedMolecules.push({ name: "Metano (CH4)", wavelength: "3.30 um", confidence: "94%" });
-      detectedMolecules.push({ name: "Monóxido de Carbono (CO)", wavelength: "4.67 um", confidence: "87%" });
+      detectedMolecules.push({ id: "water_ice", name: "Water ice (H₂O)", wavelength: "3.05 µm", confidence: "98%" });
+      detectedMolecules.push({ id: "methane", name: "Methane (CH₄)", wavelength: "3.30 µm", confidence: "94%" });
+      detectedMolecules.push({ id: "co", name: "Carbon monoxide (CO)", wavelength: "4.67 µm", confidence: "87%" });
     } else {
-      detectedMolecules.push({ name: "Vapor de Agua (H2O)", wavelength: "3.05 um", confidence: "91%" });
-      detectedMolecules.push({ name: "Dióxido de Carbono (CO2)", wavelength: "4.26 um", confidence: "82%" });
+      detectedMolecules.push({ id: "water_vapor", name: "Water vapor (H₂O)", wavelength: "3.05 µm", confidence: "91%" });
+      detectedMolecules.push({ id: "co2", name: "Carbon dioxide (CO₂)", wavelength: "4.26 µm", confidence: "82%" });
     }
 
     return {
       points,
       molecules: detectedMolecules,
-      interpretation: isWise0855 
-        ? "Cuerpo subestelar frío (~250 K). La depresión en 3.05 um indica absorción por nubes de hielo de agua."
-        : "Distribución espectral continua con líneas de absorción molecular circumestelares."
+      // El texto final lo traduce el cliente según interpretation_id
+      interpretation_id: isWise0855 ? "cold_body" : "continuous",
+      interpretation: isWise0855
+        ? "Ultra-cold substellar body (~250 K). The dip at 3.05 µm indicates absorption by water-ice clouds."
+        : "Continuous infrared spectrum with circumstellar molecular absorption lines."
     };
   }
 }
