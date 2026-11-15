@@ -182,6 +182,7 @@ cython_debug/
 prompt.md  
 AGENTS.md
 backend/context/
+frontend_context/
 
 # GrajX SPHEREx data caches & heavy FITS binaries
 data/cache/
