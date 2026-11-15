@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections import OrderedDict
 from dataclasses import dataclass, field
 from pathlib import Path
+import threading
 
 import astropy.units as u
 import matplotlib
@@ -26,6 +27,7 @@ from .config import DEFAULT_PIXEL_SCALE_ARCSEC, DETECTOR_BANDS, FLAG_BIT_DEFINIT
 from .models import QualityInfo, QualityStatus, SpectrumPoint, StretchMethod
 
 _REPROJECT_CACHE: OrderedDict[tuple[str, int, int, tuple[str, ...]], list["ReprojectedExposure"]] = OrderedDict()
+_REPROJECT_LOCK = threading.Lock()
 _MAX_CACHE_ENTRIES = 12
 
 
@@ -210,9 +212,9 @@ def build_target_wcs(
     para alinear todas las épocas antes de apilar, restar o medir espectros.
     """
     raw_npix = int(round((fov_arcmin * 60.0) / pixel_scale_arcsec))
-    if raw_npix > 300:
-        # Escala controlada para FOVs grandes (20'-30') manteniendo respuesta web ágil
-        n_pix = 300
+    if raw_npix > 160:
+        # Escala controlada para FOVs grandes (10'-30') manteniendo respuesta web ágil
+        n_pix = 160
         effective_scale_arcsec = (fov_arcmin * 60.0) / n_pix
     else:
         n_pix = max(32, raw_npix)
@@ -283,9 +285,11 @@ def reproject_sequence(
 ) -> list[ReprojectedExposure]:
     """Lee y reproyecta todos los FITS ordenados cronológicamente por MJD (con caché LRU)."""
     mem_key = (cache_key, shape_out[0], shape_out[1], tuple(p.name for p in paths))
-    if cache_key and mem_key in _REPROJECT_CACHE:
-        _REPROJECT_CACHE.move_to_end(mem_key)
-        return _REPROJECT_CACHE[mem_key]
+    if cache_key:
+        with _REPROJECT_LOCK:
+            if mem_key in _REPROJECT_CACHE:
+                _REPROJECT_CACHE.move_to_end(mem_key)
+                return _REPROJECT_CACHE[mem_key]
 
     reprojected: list[ReprojectedExposure] = []
     for path in paths:
@@ -294,9 +298,10 @@ def reproject_sequence(
     reprojected.sort(key=lambda e: (e.mjd, e.wavelength_um))
 
     if cache_key:
-        _REPROJECT_CACHE[mem_key] = reprojected
-        while len(_REPROJECT_CACHE) > _MAX_CACHE_ENTRIES:
-            _REPROJECT_CACHE.popitem(last=False)
+        with _REPROJECT_LOCK:
+            _REPROJECT_CACHE[mem_key] = reprojected
+            while len(_REPROJECT_CACHE) > _MAX_CACHE_ENTRIES:
+                _REPROJECT_CACHE.popitem(last=False)
 
     return reprojected
 
@@ -390,6 +395,41 @@ def normalize_to_uint8(
 
     uint8_img = np.clip(np.asarray(norm) * 255.0, 0.0, 255.0).astype(np.uint8)
     return np.flipud(uint8_img) if flip_north_up else uint8_img
+
+
+_DETECTOR_PALETTES: dict[str, tuple[tuple[int, int, int], tuple[int, int, int], tuple[int, int, int]]] = {
+    "D1": ((3, 7, 22), (37, 150, 255), (230, 248, 255)),      # Azul eléctrico (0.75-1.11 um)
+    "D2": ((3, 14, 22), (20, 184, 166), (225, 255, 250)),     # Cian turquesa (1.11-1.64 um)
+    "D3": ((3, 18, 12), (34, 197, 94), (236, 253, 245)),      # Verde esmeralda (1.64-2.42 um)
+    "D4": ((20, 12, 3), (245, 158, 11), (254, 249, 215)),     # Ámbar dorado (2.42-3.82 um)
+    "D5": ((24, 8, 4), (249, 115, 22), (255, 240, 220)),      # Naranja térmico (3.82-4.42 um)
+    "D6": ((22, 4, 14), (236, 72, 153), (255, 232, 245)),     # Magenta infrarrojo (4.42-5.00 um)
+    "DEFAULT": ((6, 9, 22), (139, 92, 246), (254, 243, 199)), # Gradiente IR cósmico general
+}
+
+
+def colorize_detector_uint8(gray_u8: np.ndarray, detector: str) -> np.ndarray:
+    """Convierte una imagen 2D uint8 a falso color RGB específico de cada detector SPHEREx."""
+    key = detector.strip().upper() if detector else "DEFAULT"
+    low, mid, high = _DETECTOR_PALETTES.get(key, _DETECTOR_PALETTES["DEFAULT"])
+
+    raw_f = gray_u8.astype(np.float32)
+    sky_floor = float(np.percentile(raw_f, 52.0)) if raw_f.size else 0.0
+    span = max(255.0 - sky_floor, 16.0)
+    t = np.clip((raw_f - sky_floor) / span, 0.0, 1.0)
+    t = np.power(t, 0.92)
+    rgb = np.zeros((*gray_u8.shape, 3), dtype=np.float32)
+
+    low_mask = t < 0.52
+    u_low = t / 0.52
+    u_high = (t - 0.52) / 0.48
+
+    for c_idx in range(3):
+        c_low_seg = low[c_idx] + (mid[c_idx] - low[c_idx]) * u_low
+        c_high_seg = mid[c_idx] + (high[c_idx] - mid[c_idx]) * u_high
+        rgb[..., c_idx] = np.where(low_mask, c_low_seg, c_high_seg)
+
+    return np.clip(rgb, 0.0, 255.0).astype(np.uint8)
 
 
 def render_diff_divergent_rgb(
@@ -509,7 +549,36 @@ def build_false_color_rgb_frames(
         r_u8 = normalize_to_uint8(r_coadd.image, stretch=stretch, flip_north_up=True)
         g_u8 = normalize_to_uint8(g_coadd.image, stretch=stretch, flip_north_up=True)
         b_u8 = normalize_to_uint8(b_coadd.image, stretch=stretch, flip_north_up=True)
-        rgb = np.stack([r_u8, g_u8, b_u8], axis=-1)
+
+        def _dark_sky_channel(u8: np.ndarray) -> np.ndarray:
+            arr_f = u8.astype(np.float32)
+            floor = float(np.percentile(arr_f, 52.0)) if arr_f.size else 0.0
+            norm_ch = np.clip((arr_f - floor) / max(255.0 - floor, 16.0), 0.0, 1.0)
+            return np.power(norm_ch, 0.92)
+
+        r_base = _dark_sky_channel(r_u8)
+        g_base = _dark_sky_channel(g_u8)
+        b_base = _dark_sky_channel(b_u8)
+
+        def _bg_sub(arr: np.ndarray) -> np.ndarray:
+            clean = np.nan_to_num(arr, nan=0.0, posinf=0.0, neginf=0.0)
+            med = float(np.median(clean)) if clean.size else 0.0
+            return np.flipud(np.maximum(0.0, clean - med))
+
+        r_sig = _bg_sub(r_coadd.image)
+        g_sig = _bg_sub(g_coadd.image)
+        b_sig = _bg_sub(b_coadd.image)
+
+        lum = np.maximum(np.maximum(r_base, g_base), b_base)
+        sig_sum = r_sig + g_sig + b_sig + 1e-6
+        w_r = np.clip((r_sig / sig_sum) * 2.3, 0.05, 1.4)
+        w_g = np.clip((g_sig / sig_sum) * 2.3, 0.05, 1.4)
+        w_b = np.clip((b_sig / sig_sum) * 2.3, 0.05, 1.4)
+
+        r_f = 0.02 + 0.40 * r_base + 0.58 * lum * w_r
+        g_f = 0.025 + 0.40 * g_base + 0.58 * lum * w_g
+        b_f = 0.045 + 0.40 * b_base + 0.58 * lum * w_b
+        rgb = np.clip(np.stack([r_f, g_f, b_f], axis=-1) * 255.0, 0.0, 255.0).astype(np.uint8)
 
         meta = weighted_coadd(group)
         meta.detector = "RGB(D56/D34/D12)"

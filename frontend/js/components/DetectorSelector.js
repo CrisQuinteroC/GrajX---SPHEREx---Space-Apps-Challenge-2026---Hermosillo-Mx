@@ -65,7 +65,12 @@ export class DetectorSelector {
       const btn = e.target.closest('.detector-btn');
       if (btn) {
         const det = btn.dataset.detector;
-        store.setState({ detector: det });
+        if (det === 'rgb') {
+          const curMode = store.getState().mode;
+          store.setState({ detector: 'rgb', mode: curMode === 'blink' ? 'rgb' : curMode });
+        } else {
+          store.setState({ detector: det });
+        }
         this.highlightActive(det);
       }
     });

@@ -81,7 +81,7 @@ class GrajXApp {
         const btnNext = document.querySelector('#btn-step-next');
         if (btnNext) btnNext.click();
       } else if (e.key === 'm' || e.key === 'M') {
-        const modes = ['diff', 'blink', 'stack', 'curtain'];
+        const modes = ['rgb', 'diff', 'blink', 'stack', 'curtain'];
         const currentMode = store.getState().mode;
         const nextMode = modes[(modes.indexOf(currentMode) + 1) % modes.length];
         const nextBtn = document.querySelector(`.mode-tab-btn[data-mode="${nextMode}"]`);

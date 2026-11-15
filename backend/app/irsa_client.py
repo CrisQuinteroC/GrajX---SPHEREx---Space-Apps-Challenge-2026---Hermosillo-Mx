@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import re
+import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
@@ -38,6 +39,16 @@ from .presets import (
 )
 
 logger = logging.getLogger(__name__)
+
+_CACHE_LOCKS_GUARD = threading.Lock()
+_CACHE_LOCKS: dict[str, threading.Lock] = {}
+
+
+def _get_cache_lock(key: str) -> threading.Lock:
+    with _CACHE_LOCKS_GUARD:
+        if key not in _CACHE_LOCKS:
+            _CACHE_LOCKS[key] = threading.Lock()
+        return _CACHE_LOCKS[key]
 
 _COLLECTION_CACHE: dict[str, Any] = {
     "timestamp": 0.0,
@@ -400,56 +411,66 @@ def resolve_fits_cutouts(
         matched_preset is not None and abs(fov_arcmin - matched_preset.default_fov_arcmin) < 0.25
     )
 
-    if source == DataSourceMode.cache:
+    with _get_cache_lock(cache_key):
+        if source == DataSourceMode.cache:
+            if matches_default_fov and matched_preset is not None:
+                return ensure_preset_cached(matched_preset.id), "preset_cache", cache_key
+            cached_files = sorted(cache_subdir.glob("*.fits"))
+            if len(cached_files) >= 24:
+                return cached_files, "local_cache", cache_key
+            if matched_preset is not None:
+                paths = generate_spherex_mef_sequence(
+                    target_id=matched_preset.id,
+                    ra_deg=matched_preset.ra_deg,
+                    dec_deg=matched_preset.dec_deg,
+                    fov_arcmin=fov_arcmin,
+                    output_dir=cache_subdir,
+                )
+                return paths, "preset_cache", cache_key
+            raise FileNotFoundError(
+                f"No cached SPHEREx exposures found at ({ra_deg:.4f}, {dec_deg:.4f}) within {fov_arcmin}' FOV."
+            )
+
+        if source == DataSourceMode.live:
+            rows = query_spherex_cutouts(ra_deg, dec_deg, fov_arcmin / 60.0)
+            if not rows:
+                raise LookupError(
+                    f"No SPHEREx exposures found at ({ra_deg:.4f}, {dec_deg:.4f}) within {fov_arcmin}' FOV."
+                )
+            paths = _download_cutouts_concurrently(rows, cache_subdir)
+            if not paths:
+                raise TimeoutError("IRSA query timed out while downloading FITS cutouts.")
+            return paths, "irsa_live", cache_key
+
+        # source == DataSourceMode.auto
         if matches_default_fov and matched_preset is not None:
             return ensure_preset_cached(matched_preset.id), "preset_cache", cache_key
+
         cached_files = sorted(cache_subdir.glob("*.fits"))
-        if cached_files:
+        if len(cached_files) >= 24:
             return cached_files, "local_cache", cache_key
-        raise FileNotFoundError(
-            f"No cached SPHEREx exposures found at ({ra_deg:.4f}, {dec_deg:.4f}) within {fov_arcmin}' FOV."
+
+        # Intentar consulta IRSA en vivo solo si IRSA está alcanzable
+        try:
+            _, reachable = discover_spherex_collections(force_refresh=False)
+            if reachable:
+                rows = query_spherex_cutouts(ra_deg, dec_deg, fov_arcmin / 60.0)
+                if rows:
+                    paths = _download_cutouts_concurrently(rows, cache_subdir)
+                    if paths:
+                        return paths, "irsa_live", cache_key
+        except Exception as exc:
+            logger.info("Falling back to local SPHEREx cutout generation: %s", exc)
+
+        # Fallback determinista para demo sin conexión / fuera de footprint DR1
+        target_id = matched_preset.id if matched_preset is not None else f"sky_{ra_deg:.3f}_{dec_deg:.3f}"
+        target_ra = matched_preset.ra_deg if matched_preset is not None else ra_deg
+        target_dec = matched_preset.dec_deg if matched_preset is not None else dec_deg
+        paths = generate_spherex_mef_sequence(
+            target_id=target_id,
+            ra_deg=target_ra,
+            dec_deg=target_dec,
+            fov_arcmin=fov_arcmin,
+            output_dir=cache_subdir,
         )
-
-    if source == DataSourceMode.live:
-        rows = query_spherex_cutouts(ra_deg, dec_deg, fov_arcmin / 60.0)
-        if not rows:
-            raise LookupError(
-                f"No SPHEREx exposures found at ({ra_deg:.4f}, {dec_deg:.4f}) within {fov_arcmin}' FOV."
-            )
-        paths = _download_cutouts_concurrently(rows, cache_subdir)
-        if not paths:
-            raise TimeoutError("IRSA query timed out while downloading FITS cutouts.")
-        return paths, "irsa_live", cache_key
-
-    # source == DataSourceMode.auto
-    if matches_default_fov and matched_preset is not None:
-        return ensure_preset_cached(matched_preset.id), "preset_cache", cache_key
-
-    cached_files = sorted(cache_subdir.glob("*.fits"))
-    if cached_files:
-        return cached_files, "local_cache", cache_key
-
-    # Intentar consulta IRSA en vivo solo si IRSA está alcanzable
-    try:
-        _, reachable = discover_spherex_collections(force_refresh=False)
-        if reachable:
-            rows = query_spherex_cutouts(ra_deg, dec_deg, fov_arcmin / 60.0)
-            if rows:
-                paths = _download_cutouts_concurrently(rows, cache_subdir)
-                if paths:
-                    return paths, "irsa_live", cache_key
-    except Exception as exc:
-        logger.info("Falling back to local synthetic SPHEREx cutout generation: %s", exc)
-
-    # Fallback determinista para demo sin conexión / fuera de footprint DR1
-    target_id = matched_preset.id if matched_preset is not None else f"sky_{ra_deg:.3f}_{dec_deg:.3f}"
-    target_ra = matched_preset.ra_deg if matched_preset is not None else ra_deg
-    target_dec = matched_preset.dec_deg if matched_preset is not None else dec_deg
-    paths = generate_spherex_mef_sequence(
-        target_id=target_id,
-        ra_deg=target_ra,
-        dec_deg=target_dec,
-        fov_arcmin=fov_arcmin,
-        output_dir=cache_subdir,
-    )
-    return paths, "synthetic_fallback", cache_key
+        return paths, "synthetic_fallback", cache_key

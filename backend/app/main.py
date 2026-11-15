@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
@@ -27,6 +27,7 @@ from .fits_processor import (
     ReprojectedExposure,
     build_false_color_rgb_frames,
     build_target_wcs,
+    colorize_detector_uint8,
     decode_quality_flags,
     extract_spectrum,
     filter_exposures_by_detector,
@@ -106,6 +107,18 @@ app.add_middleware(
 )
 
 
+@app.middleware("http")
+async def disable_static_and_api_cache(request: Request, call_next: Any) -> Response:
+    """Evita caché en módulos ES, hojas de estilo y endpoints /api/* al recargar."""
+    response = await call_next(request)
+    path = request.url.path
+    if path in ("/", "/index.html") or path.startswith(("/js/", "/css/", "/api/")):
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+    return response
+
+
 def _validate_fov(fov: float) -> float:
     if not (MIN_FOV_ARCMIN <= fov <= MAX_FOV_ARCMIN):
         raise HTTPException(
@@ -182,7 +195,13 @@ def _build_rendered_sequence(
     Genera los arrays uint8 (2D o RGB), metadatos asociados, máscaras 3σ, streaklets
     y trayectoria temporal del astro para la combinación solicitada.
     """
-    if mode == ViewMode.rgb or detector == DetectorFilter.rgb or (mode == ViewMode.curtain and detector == DetectorFilter.all):
+    eff_detector = DetectorFilter.all if detector == DetectorFilter.rgb else detector
+    use_rgb_composite = (
+        (mode == ViewMode.rgb and eff_detector == DetectorFilter.all)
+        or (mode in (ViewMode.blink, ViewMode.curtain) and detector == DetectorFilter.rgb)
+    )
+
+    if use_rgb_composite:
         rgb_pairs = build_false_color_rgb_frames(reprojected, stretch=stretch)
         rendered_arrays = [pair[0] for pair in rgb_pairs]
         metas = [pair[1] for pair in rgb_pairs]
@@ -201,11 +220,11 @@ def _build_rendered_sequence(
                 streaklets_out[idx] = detect_streaklets(meta.image)
         return rendered_arrays, metas, masks_out, streaklets_out, trajectory
 
-    selected = filter_exposures_by_detector(reprojected, detector.value)
+    selected = filter_exposures_by_detector(reprojected, eff_detector.value)
     if not selected:
         raise HTTPException(
             status_code=404,
-            detail=f"No SPHEREx exposures available for detector {detector.value}.",
+            detail=f"No SPHEREx exposures available for detector {eff_detector.value}.",
         )
 
     cube = np.stack([e.image for e in selected], axis=0)
@@ -222,23 +241,25 @@ def _build_rendered_sequence(
             combined_flags = np.where(bit_count >= majority_thresh, combined_flags | np.uint16(1 << bit_idx), combined_flags)
 
         ref = selected[0]
+        det_label = eff_detector.value if eff_detector != DetectorFilter.all else "D1-D6"
         stack_meta = ReprojectedExposure(
-            planeid=f"stack_{detector.value}_{len(selected)}f",
+            planeid=f"stack_{eff_detector.value}_{len(selected)}f",
             image=stacked_img,
             variance=np.nanmedian(variances, axis=0),
             flags=combined_flags,
             mjd=float(np.mean([e.mjd for e in selected])),
             obs_utc=f"{selected[0].obs_utc[:10]}..{selected[-1].obs_utc[:10]}",
-            detector=detector.value if detector != DetectorFilter.all else "D1-D6",
-            band_name=f"Median-Stack-{detector.value}",
+            detector=det_label,
+            band_name=f"Median-Stack-{eff_detector.value}",
             wavelength_um=float(round(np.mean([e.wavelength_um for e in selected]), 3)),
             exposure_sec=float(sum(e.exposure_sec for e in selected)),
             flux_unit=ref.flux_unit,
             flag_definitions=ref.flag_definitions,
         )
         rendered_u8 = normalize_to_uint8(stacked_img, stretch=stretch, flip_north_up=True)
+        colorized_u8 = colorize_detector_uint8(rendered_u8, det_label)
         streaklets = [detect_streaklets(stacked_img)] if include_mask else [[]]
-        return [rendered_u8], [stack_meta], [None], streaklets, []
+        return [colorized_u8], [stack_meta], [None], streaklets, []
 
     diff_cube = compute_detector_aware_difference_cube(cube, [e.detector for e in selected])
     masks_3d = detect_moving_objects_mask(diff_cube) if include_mask else None
@@ -258,9 +279,10 @@ def _build_rendered_sequence(
             rendered_arrays.append(render_diff_divergent_rgb(diff_cube[idx], vlim=global_vlim, flip_north_up=True))
             masks_out.append(masks_3d[idx] if masks_3d is not None else None)
             streaklets_out.append(detect_streaklets(exp.image) if include_mask else [])
-    else:  # ViewMode.blink / ViewMode.curtain
+    else:  # ViewMode.blink / ViewMode.curtain / ViewMode.rgb con detector D1..D6 específico
         for idx, exp in enumerate(selected):
-            rendered_arrays.append(normalize_to_uint8(exp.image, stretch=stretch, flip_north_up=True))
+            u8 = normalize_to_uint8(exp.image, stretch=stretch, flip_north_up=True)
+            rendered_arrays.append(colorize_detector_uint8(u8, exp.detector))
             masks_out.append(masks_3d[idx] if masks_3d is not None else None)
             streaklets_out.append(detect_streaklets(exp.image) if include_mask else [])
 

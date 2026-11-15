@@ -97,6 +97,8 @@ export class SettingsPanel {
     document.body.classList.toggle(LIGHT_CLASS, isLight);
     this._refreshThemeLabels();
     if (persist) localStorage.setItem(THEME_STORAGE_KEY, isLight ? 'light' : 'dark');
+    store.setState({ theme: isLight ? 'light' : 'dark' });
+    window.dispatchEvent(new CustomEvent('grajx:theme-changed', { detail: { isLight } }));
   }
 
   _refreshThemeLabels() {

@@ -9,6 +9,7 @@ export class ApiClient {
   constructor(baseUrl = '') {
     this.baseUrl = baseUrl;
     this.abortController = null;
+    this.spectrumAbortController = null;
   }
 
   async getPresets() {
@@ -21,14 +22,24 @@ export class ApiClient {
     return this.getLocalPresets();
   }
 
-  async getFrames(ra, dec, fov, mode, detector) {
+  async getFrames(ra, dec, fov, mode, detector, stretch = 'asinh', includeMask = true, source = 'auto') {
     if (this.abortController) {
       this.abortController.abort();
     }
     this.abortController = new AbortController();
 
     try {
-      const url = `${this.baseUrl}/api/frames?ra=${ra}&dec=${dec}&fov=${fov}&mode=${mode}&detector=${detector}`;
+      const params = new URLSearchParams({
+        ra: String(ra),
+        dec: String(dec),
+        fov: String(fov),
+        mode: String(mode),
+        detector: String(detector),
+        stretch: String(stretch),
+        include_mask: includeMask ? 'true' : 'false',
+        source: String(source),
+      });
+      const url = `${this.baseUrl}/api/frames?${params.toString()}`;
       const res = await fetch(url, { signal: this.abortController.signal });
       if (res.ok) return await res.json();
     } catch (e) {
@@ -38,15 +49,86 @@ export class ApiClient {
     return this.generateSyntheticFrames(ra, dec, fov, mode, detector);
   }
 
-  async getSpectrum(ra, dec, pixelX = 0.5, pixelY = 0.5) {
+  async getSpectrum(ra, dec, pixelX = 0.5, pixelY = 0.5, fov = 6.0, source = 'auto') {
+    if (this.spectrumAbortController) {
+      this.spectrumAbortController.abort();
+    }
+    this.spectrumAbortController = new AbortController();
+
     try {
-      const url = `${this.baseUrl}/api/spectrum?ra=${ra}&dec=${dec}&px=${pixelX}&py=${pixelY}`;
-      const res = await fetch(url, { signal: AbortSignal.timeout(3000) });
+      const params = new URLSearchParams({
+        ra: String(ra),
+        dec: String(dec),
+        fov: String(fov),
+        px: String(pixelX),
+        py: String(pixelY),
+        source: String(source),
+      });
+      const url = `${this.baseUrl}/api/spectrum?${params.toString()}`;
+      const res = await fetch(url, { signal: this.spectrumAbortController.signal });
       if (res.ok) return await res.json();
-    } catch {
-      // Fallback
+    } catch (e) {
+      if (e.name === 'AbortError') throw e;
     }
     return this.generateSyntheticSpectrum(ra, dec);
+  }
+
+  async parseCoordinates(raInput, decInput = null) {
+    try {
+      const params = new URLSearchParams({ ra: String(raInput).trim() });
+      if (decInput !== null && String(decInput).trim() !== '') {
+        params.set('dec', String(decInput).trim());
+      }
+      const res = await fetch(`${this.baseUrl}/api/coordinates/parse?${params.toString()}`, {
+        signal: AbortSignal.timeout(3000),
+      });
+      if (res.ok) return await res.json();
+    } catch {
+      // Offline fallback handled by caller
+    }
+    return null;
+  }
+
+  async getEstimate(ra, dec, fov) {
+    try {
+      const params = new URLSearchParams({
+        ra: String(ra),
+        dec: String(dec),
+        fov: String(fov),
+      });
+      const res = await fetch(`${this.baseUrl}/api/estimate?${params.toString()}`, {
+        signal: AbortSignal.timeout(3000),
+      });
+      if (res.ok) return await res.json();
+    } catch {
+      // Optional telemetry
+    }
+    return null;
+  }
+
+  getExportGifUrl({ ra, dec, fov = 6.0, mode = 'rgb', detector = 'all', stretch = 'asinh', fps = 3.0, source = 'auto' }) {
+    const queryMode = mode === 'curtain' ? 'rgb' : mode;
+    const params = new URLSearchParams({
+      ra: String(ra),
+      dec: String(dec),
+      fov: String(fov),
+      mode: String(queryMode),
+      detector: String(detector),
+      stretch: String(stretch),
+      fps: String(fps),
+      source: String(source),
+    });
+    return `${this.baseUrl}/api/export/gif?${params.toString()}`;
+  }
+
+  async getHealth() {
+    try {
+      const res = await fetch(`${this.baseUrl}/api/health`, { signal: AbortSignal.timeout(3000) });
+      if (res.ok) return await res.json();
+    } catch {
+      // Offline
+    }
+    return null;
   }
 
   getLocalPresets() {
@@ -59,10 +141,10 @@ export class ApiClient {
         description: "Estrella enana roja a 5.96 a.l. Posee el mayor movimiento propio conocido (10.3 arcsec/año).",
         ra: 269.45208,
         dec: 4.69336,
-        recommended_fov: 5.0,
-        recommended_mode: "diff",
+        recommended_fov: 6.0,
+        recommended_mode: "rgb",
         recommended_detector: "all",
-        fun_fact: "Su desplazamiento acumulado es perceptible en escalas de pocos años.",
+        fun_fact: "",
         motion_rate: "10.3 arcsec/año"
       },
       {
@@ -73,10 +155,10 @@ export class ApiClient {
         description: "Par binario subestelar frío (T1 + T6) en órbita mutua con alto movimiento propio (4.7 arcsec/año).",
         ra: 331.04390,
         dec: -56.78194,
-        recommended_fov: 4.0,
-        recommended_mode: "blink",
+        recommended_fov: 6.0,
+        recommended_mode: "rgb",
         recommended_detector: "D4",
-        fun_fact: "Objetos fríos detectados con mayor contraste en el infrarrojo cercano.",
+        fun_fact: "",
         motion_rate: "4.7 arcsec/año"
       },
       {
@@ -88,9 +170,9 @@ export class ApiClient {
         ra: 133.79513,
         dec: -7.24515,
         recommended_fov: 6.0,
-        recommended_mode: "blink",
+        recommended_mode: "rgb",
         recommended_detector: "D5",
-        fun_fact: "Presenta absorción característica de nubes de hielo de agua en 3.05 micrómetros.",
+        fun_fact: "",
         motion_rate: "8.1 arcsec/año"
       },
       {
@@ -101,10 +183,10 @@ export class ApiClient {
         description: "Estrella joven con oscurecimientos episódicos causados por polvo circumestelar.",
         ra: 76.95608,
         dec: 30.40133,
-        recommended_fov: 3.0,
-        recommended_mode: "blink",
+        recommended_fov: 6.0,
+        recommended_mode: "rgb",
         recommended_detector: "all",
-        fun_fact: "Posición fija con variación de flujo fotométrico notable entre épocas.",
+        fun_fact: "",
         motion_rate: "Variabilidad fotométrica"
       },
       {
@@ -115,10 +197,10 @@ export class ApiClient {
         description: "Estrella gigante roja variable tipo Mira con ciclos periódicos de pulsación y variaciones térmicas.",
         ra: 248.16763,
         dec: 66.75497,
-        recommended_fov: 8.0,
-        recommended_mode: "blink",
+        recommended_fov: 6.0,
+        recommended_mode: "rgb",
         recommended_detector: "D3",
-        fun_fact: "Muestra firmas moleculares de vapor de agua y monóxido de carbono en su atmósfera.",
+        fun_fact: "",
         motion_rate: "Pulsación periódica"
       }
     ];
@@ -240,9 +322,7 @@ export class ApiClient {
       molecules: detectedMolecules,
       // El texto final lo traduce el cliente según interpretation_id
       interpretation_id: isWise0855 ? "cold_body" : "continuous",
-      interpretation: isWise0855
-        ? "Ultra-cold substellar body (~250 K). The dip at 3.05 µm indicates absorption by water-ice clouds."
-        : "Continuous infrared spectrum with circumstellar molecular absorption lines."
+      interpretation: ""
     };
   }
 }

@@ -4,6 +4,7 @@
  */
 
 import { i18n } from '../i18n.js';
+import { store } from '../state.js';
 
 export class EmbedModal {
   constructor(container) {
@@ -64,10 +65,10 @@ export class EmbedModal {
     }
   }
 
-  open() {
-    const backdrop = this.container.querySelector('#embed-modal-backdrop');
+  refreshSnippets() {
     const urlBox = this.container.querySelector('#shareable-url-box');
     const iframeBox = this.container.querySelector('#iframe-code-box');
+    if (!urlBox || !iframeBox) return;
 
     const currentUrl = window.location.href;
     const embedUrl = new URL(currentUrl);
@@ -75,7 +76,11 @@ export class EmbedModal {
 
     urlBox.textContent = currentUrl;
     iframeBox.textContent = `<iframe src="${embedUrl.toString()}" width="100%" height="600" frameborder="0" allowfullscreen title="GrajX SPHEREx Viewer"></iframe>`;
+  }
 
+  open() {
+    const backdrop = this.container.querySelector('#embed-modal-backdrop');
+    this.refreshSnippets();
     backdrop.classList.add('open');
   }
 
@@ -99,9 +104,19 @@ export class EmbedModal {
     }, 2000);
   }
 
-  /** Listeners en window: se registran una sola vez. */
+  /** Listeners en window y store: se registran una sola vez. */
   attachGlobalEvents() {
     window.addEventListener('grajx:open-embed-modal', () => this.open());
+
+    const syncIfOpen = () => {
+      const backdrop = this.container.querySelector('#embed-modal-backdrop');
+      if (backdrop && backdrop.classList.contains('open')) {
+        this.refreshSnippets();
+      }
+    };
+
+    window.addEventListener('grajx:url-updated', syncIfOpen);
+    store.subscribe('*', syncIfOpen);
 
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') this.close();
@@ -110,6 +125,7 @@ export class EmbedModal {
     window.addEventListener('grajx:locale-changed', () => {
       this.render();
       this.attachDomEvents();
+      syncIfOpen();
     });
   }
 

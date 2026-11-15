@@ -297,7 +297,13 @@ def generate_spherex_mef_sequence(
     rng = np.random.default_rng(seed)
 
     # Tamaño del parche ligeramente mayor para que al reproyectar no falten esquinas tras rotación
-    n_target = max(48, int(round((fov_arcmin * 60.0) / pixel_scale_arcsec)))
+    raw_target = max(48, int(round((fov_arcmin * 60.0) / pixel_scale_arcsec)))
+    if raw_target > 140:
+        n_target = 140
+        eff_pixel_scale = (fov_arcmin * 60.0) / n_target
+    else:
+        n_target = raw_target
+        eff_pixel_scale = pixel_scale_arcsec
     n_src = int(np.ceil(n_target * 1.35))
     if n_src % 2 == 1:
         n_src += 1
@@ -365,7 +371,7 @@ def generate_spherex_mef_sequence(
                 ra_deg=ra_deg,
                 dec_deg=dec_deg,
                 n_pix=n_src,
-                pixel_scale_arcsec=pixel_scale_arcsec,
+                pixel_scale_arcsec=eff_pixel_scale,
                 roll_deg=roll_deg + det_idx * 1.5,
                 dither_ra_arcsec=dither_ra,
                 dither_dec_arcsec=dither_dec,
@@ -456,7 +462,9 @@ def generate_spherex_mef_sequence(
 
             hdul = fits.HDUList([primary_hdu, image_hdu, flags_hdu, var_hdu])
             out_path = output_dir / f"frame_{frame_counter:03d}_e{epoch_idx}_{det_name}.fits"
-            hdul.writeto(out_path, overwrite=True)
+            tmp_path = output_dir / f"{out_path.name}.tmp"
+            hdul.writeto(tmp_path, overwrite=True)
+            tmp_path.replace(out_path)
             generated_paths.append(out_path)
             frame_counter += 1
 
