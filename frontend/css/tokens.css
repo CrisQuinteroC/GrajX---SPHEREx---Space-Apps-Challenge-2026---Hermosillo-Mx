@@ -1,0 +1,110 @@
+/**
+ * GrajX — Design Tokens
+ * Paleta Cósmica: Fondo Predominante Oscuro que evoca Curiosidad y Esperanza.
+ * 
+ * Psicología del Color:
+ * - Oscuridad Cósmica Abisal (#060913, #0D1526): El misterio del cosmos profundo.
+ * - Espectro de Curiosidad (#00E5FF, #818CF8): Estimula el intelecto y el deseo de explorar lo desconocido.
+ * - Espectro de Esperanza (#10B981, #F59E0B): El resplandor de la primera luz (Reionización) y biofirmas.
+ */
+
+:root {
+  /* ========================================================
+     FONDOS PREDOMINANTES OSCUROS (Profundidad y Asombro)
+     ======================================================== */
+  --color-bg-base: #060913;          /* Fondo cósmico profundo */
+  --color-bg-surface: #0D1526;       /* Tarjetas y paneles principales */
+  --color-bg-subtle: #131E35;        /* Fondos secundarios de controles e inputs */
+  --color-bg-subtle-hover: #1A2947;  /* Hover en elementos interactivos */
+  --color-border-warm: #1F2E4A;      /* Bordes estructurales sobrios */
+  --color-border-subtle: rgba(255, 255, 255, 0.08);
+
+  /* ========================================================
+     TEXTOS DE ALTA CLARIDAD Y CONTRASTE (Legibilidad Pura)
+     ======================================================== */
+  --color-text-main: #F8FAFC;        /* Blanco estelar nítido */
+  --color-text-secondary: #CBD5E1;   /* Texto secundario claro */
+  --color-text-muted: #8493A8;       /* Metadatos y notas técnicas */
+
+  /* ========================================================
+     ACENTOS DE CURIOSIDAD Y ESPERANZA
+     ======================================================== */
+  --color-curiosity-cyan: #00E5FF;   /* Curiosidad: enfoque, selección y enlaces */
+  --color-curiosity-cyan-rgb: 0, 229, 255;
+  --color-curiosity-indigo: #818CF8; /* Exploración de fronteras cósmicas */
+  
+  --color-hope-aurora: #10B981;      /* Esperanza: aurora, biofirmas y estado óptimo */
+  --color-hope-dawn: #F59E0B;        /* Esperanza: primera luz estelar / ámbar cálido */
+  --color-thermal-coral: #FF6361;    /* Emisión térmica y alerta */
+  
+  --color-navy: #00E5FF;             /* Botón primario y foco principal */
+  --color-navy-hover: #33EBFF;
+
+  /* Estados semánticos */
+  --color-status-success: #10B981;   /* Esperanza / Calidad óptima */
+  --color-status-warning: #F59E0B;   /* Precaución / Luz zodiacal */
+  --color-status-error: #EF4444;     /* Error / Artefacto */
+
+  /* Dipolo de resta temporal */
+  --color-diff-positive: #00E5FF;    /* Aparición / desplazamiento (Curiosidad) */
+  --color-diff-negative: #FF6361;    /* Posición previa (Térmico) */
+
+  /* Lienzo astronómico */
+  --color-canvas-bg: #03050B;
+
+  /* Tipografía */
+  --font-family-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-family-mono: "JetBrains Mono", Menlo, Consolas, monospace;
+
+  /* Escala de texto */
+  --font-size-xs: 0.75rem;    /* 12px */
+  --font-size-sm: 0.875rem;   /* 14px */
+  --font-size-md: 1.0rem;     /* 16px */
+  --font-size-lg: 1.1875rem;  /* 19px */
+  --font-size-xl: 1.5rem;     /* 24px */
+
+  /* Espaciado */
+  --space-2xs: 4px;
+  --space-xs: 8px;
+  --space-sm: 12px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+
+  /* Bordes */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+
+  /* Sombras sutiles luminosas */
+  --shadow-subtle: 0 4px 20px rgba(0, 0, 0, 0.4);
+  --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.5);
+  --shadow-glow-cyan: 0 0 16px rgba(0, 229, 255, 0.25);
+
+  --transition-fast: 150ms ease;
+  --transition-normal: 250ms ease;
+}
+
+/* ========================================================
+      LIGHT MODE VARIABLES
+      ======================================================== */
+.light-mode {
+  --color-bg-base: #F8FAFC;          /* Light background */
+  --color-bg-surface: #FFFFFF;       /* Cards and panels */
+  --color-bg-subtle: #E5E7EB;        /* Subtle controls */
+  --color-bg-subtle-hover: #D1D5DB;  /* Hover */
+  --color-border-warm: #D1D5DB;      /* Warm borders */
+  --color-text-main: #111827;        /* Dark text */
+  --color-text-secondary: #374151;   /* Secondary text */
+  --color-text-muted: #6B7280;       /* Muted */
+  --color-curiosity-cyan: #1D4ED8;   /* Primary accent */
+  --color-curiosity-cyan-rgb: 29, 78, 216;
+  --color-curiosity-indigo: #6366F1; /* Secondary accent */
+  --color-hope-aurora: #10B981;      /* Success */
+  --color-hope-dawn: #F59E0B;        /* Warning */
+  --color-thermal-coral: #EF4444;    /* Error */
+  --color-diff-positive: #10B981;    /* Diff positive */
+  --color-diff-negative: #EF4444;    /* Diff negative */
+  --color-canvas-bg: #FFFFFF;        /* Canvas */
+}

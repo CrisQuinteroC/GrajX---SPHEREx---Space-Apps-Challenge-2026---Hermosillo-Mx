@@ -29,6 +29,14 @@ PRESET_TARGETS: dict[str, PresetTarget] = {
         phenomenon="Movimiento propio más rápido conocido (10.3\"/año) + paralaje",
         recommended_mode=ViewMode.rgb,
         recommended_detector=DetectorFilter.all,
+        ra=269.45208,
+        dec=4.69336,
+        recommended_fov=6.0,
+        friendly_title="Alto Movimiento Propio",
+        category="moving_star",
+        description="Estrella enana roja a 5.96 a.l. Posee el mayor movimiento propio conocido (10.3 arcsec/año). En modo resta se aprecia el desplazamiento neto.",
+        fun_fact="Su desplazamiento acumulado es perceptible en escalas de tiempo de pocos años.",
+        motion_rate="10.3 arcsec/año",
     ),
     "epsilon_indi_b": PresetTarget(
         id="epsilon_indi_b",
@@ -42,6 +50,14 @@ PRESET_TARGETS: dict[str, PresetTarget] = {
         phenomenon="Alto movimiento propio (4.7\"/año) + movimiento orbital del par binario",
         recommended_mode=ViewMode.rgb,
         recommended_detector=DetectorFilter.D4,
+        ra=331.04390,
+        dec=-56.78194,
+        recommended_fov=6.0,
+        friendly_title="Sistema Binario de Enanas Marrones",
+        category="brown_dwarf",
+        description="Par binario de objetos subestelares fríos (T1 + T6) en órbita mutua con alto movimiento propio (4.7 arcsec/año).",
+        fun_fact="Cuerpos fríos detectados con mayor contraste en longitudes de onda del infrarrojo cercano.",
+        motion_rate="4.7 arcsec/año",
     ),
     "wise_0855": PresetTarget(
         id="wise_0855",
@@ -55,6 +71,14 @@ PRESET_TARGETS: dict[str, PresetTarget] = {
         phenomenon="Movimiento rápido (8.1\"/año) y emisión extrema solo en infrarrojo (3.5–5.0 µm)",
         recommended_mode=ViewMode.rgb,
         recommended_detector=DetectorFilter.D5,
+        ra=133.79513,
+        dec=-7.24515,
+        recommended_fov=6.0,
+        friendly_title="Enana Marrón Ultra Fría",
+        category="cold_brown_dwarf",
+        description="Objeto tipo Y (~250 K). Emisión detectable predominantemente en detectores de onda larga (D5 y D6 de SPHEREx).",
+        fun_fact="Presenta absorción característica de nubes de hielo de agua en 3.05 micrómetros.",
+        motion_rate="8.1 arcsec/año",
     ),
     "rw_aurigae": PresetTarget(
         id="rw_aurigae",
@@ -68,6 +92,14 @@ PRESET_TARGETS: dict[str, PresetTarget] = {
         phenomenon="Variabilidad fotométrica abrupta (oscurecimiento por polvo circumestelar)",
         recommended_mode=ViewMode.rgb,
         recommended_detector=DetectorFilter.all,
+        ra=76.95608,
+        dec=30.40133,
+        recommended_fov=6.0,
+        friendly_title="Estrella Variable T Tauri",
+        category="variable_star",
+        description="Estrella joven con variaciones de brillo fotométrico por oscurecimiento episódico de polvo circumestelar.",
+        fun_fact="Mantiene posición fija mientras su flujo lumínico varía entre distintas épocas.",
+        motion_rate="Variabilidad fotométrica",
     ),
     "r_draconis": PresetTarget(
         id="r_draconis",
@@ -81,8 +113,18 @@ PRESET_TARGETS: dict[str, PresetTarget] = {
         phenomenon="Pulsación periódica de gran amplitud (~245 días, cambio de brillo + espectro)",
         recommended_mode=ViewMode.rgb,
         recommended_detector=DetectorFilter.all,
+        ra=248.16763,
+        dec=66.75497,
+        recommended_fov=6.0,
+        friendly_title="Estrella Gigante Pulsante",
+        category="pulsating_giant",
+        description="Estrella gigante roja variable tipo Mira con ciclos periódicos de pulsación y variaciones térmicas.",
+        fun_fact="Su atmósfera en expansión y contracción muestra marcadas firmas moleculares de vapor de agua y monóxido de carbono.",
+        motion_rate="Pulsación periódica",
     ),
 }
+
+BENCHMARK_PRESETS = [p.model_dump() for p in PRESET_TARGETS.values()]
 
 # Alias comunes para resolución por nombre en el buscador
 PRESET_ALIASES: dict[str, str] = {

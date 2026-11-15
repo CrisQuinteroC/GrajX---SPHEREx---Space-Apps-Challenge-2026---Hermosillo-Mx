@@ -17,7 +17,7 @@ class TestBackendApi(unittest.TestCase):
             self.assertIn("GrajX", dbg.text)
 
             root = client.get("/", follow_redirects=False)
-            self.assertIn(root.status_code, (302, 307))
+            self.assertIn(root.status_code, (200, 302, 307))
 
             health = client.get("/api/health")
             self.assertEqual(health.status_code, 200)

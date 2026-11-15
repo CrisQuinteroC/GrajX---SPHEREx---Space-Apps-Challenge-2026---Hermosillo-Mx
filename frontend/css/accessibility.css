@@ -1,0 +1,92 @@
+/**
+ * GrajX — Accessibility Styles (WCAG 2.1 AAA / AA)
+ * Garantiza usabilidad para niños, personas mayores y diversidad funcional.
+ */
+
+/* ========================================================
+   1. CONTROL DE MOVIMIENTO Y SEGURIDAD FOTOSENSIBLE
+   ======================================================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .cosmic-pulse,
+  .badge-pulse,
+  .star-twinkle {
+    animation: none !important;
+  }
+}
+
+/* ========================================================
+   2. FOCO ACCESIBLE DE ALTO CONTRASTE (Navegación por Teclado)
+   ======================================================== */
+:focus-visible {
+  outline: 3px solid var(--color-navy) !important;
+  outline-offset: 2px !important;
+}
+
+button:focus:not(:focus-visible),
+input:focus:not(:focus-visible),
+select:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ========================================================
+   3. CLASES UTILITARIAS PARA LECTORES DE PANTALLA (ARIA)
+   ======================================================== */
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+.sr-only-focusable:focus,
+.sr-only-focusable:focus-visible {
+  position: static !important;
+  width: auto !important;
+  height: auto !important;
+  overflow: visible !important;
+  clip: auto !important;
+  white-space: normal !important;
+}
+
+/* ========================================================
+   4. TAMAÑOS MÍNIMOS DE ACCIÓN TÁCTIL (Fitts's Law)
+   ======================================================== */
+.touch-target {
+  min-width: 40px;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ========================================================
+   5. MODO ALTO CONTRASTE REFORZADO
+   ======================================================== */
+body.high-contrast-mode {
+  --color-bg-base: #FFFFFF;
+  --color-bg-surface: #FFFFFF;
+  --color-border-warm: #000000;
+  --color-text-main: #000000;
+  --color-text-secondary: #000000;
+  --color-navy: #000000;
+}
+
+body.high-contrast-mode button,
+body.high-contrast-mode select,
+body.high-contrast-mode input {
+  border: 2px solid #000000 !important;
+}

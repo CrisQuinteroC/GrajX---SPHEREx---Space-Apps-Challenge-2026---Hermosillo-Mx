@@ -11,6 +11,7 @@ class ViewMode(str, Enum):
     stack = "stack"
     diff = "diff"
     rgb = "rgb"
+    curtain = "curtain"
 
 
 class DetectorFilter(str, Enum):
@@ -21,6 +22,7 @@ class DetectorFilter(str, Enum):
     D4 = "D4"
     D5 = "D5"
     D6 = "D6"
+    rgb = "rgb"
 
 
 class StretchMethod(str, Enum):
@@ -61,6 +63,14 @@ class PresetTarget(BaseModel):
     phenomenon: str
     recommended_mode: ViewMode
     recommended_detector: DetectorFilter
+    ra: float = 0.0
+    dec: float = 0.0
+    recommended_fov: float = 6.0
+    friendly_title: str = ""
+    category: str = ""
+    description: str = ""
+    fun_fact: str = ""
+    motion_rate: str = ""
 
 
 class CoordinateParseResponse(BaseModel):
@@ -118,6 +128,14 @@ class StreakletSegment(BaseModel):
     y2: int
 
 
+class TargetCoords(BaseModel):
+    x: float = 0.5
+    y: float = 0.5
+    brightness: float = 1.0
+    companionX: float | None = None
+    companionY: float | None = None
+
+
 class FrameItem(BaseModel):
     index: int
     planeid: str
@@ -132,6 +150,10 @@ class FrameItem(BaseModel):
     flux_unit: str = "MJy/sr"
     quality: QualityInfo
     streaklets: list[StreakletSegment] = Field(default_factory=list)
+    frame_index: int = 0
+    epoch_label: str = ""
+    observation_date_utc: str = ""
+    target_coords: TargetCoords = Field(default_factory=TargetCoords)
 
 
 class TrajectoryPoint(BaseModel):
@@ -150,6 +172,7 @@ class FramesResponse(BaseModel):
     data_source: str
     wcs: WCSInfo
     frames: list[FrameItem]
+    total_frames: int = 0
     trajectory: list[TrajectoryPoint] = Field(default_factory=list)
 
 
@@ -162,10 +185,20 @@ class SpectrumPoint(BaseModel):
     flagged: bool = False
 
 
+class MoleculeTag(BaseModel):
+    id: str
+    name: str
+    wavelength: str
+    confidence: str
+
+
 class SpectrumResponse(BaseModel):
     target_ra_deg: float
     target_dec_deg: float
     aperture_arcsec: float
     flux_unit: str = "MJy/sr"
     points: list[SpectrumPoint]
+    molecules: list[MoleculeTag] = Field(default_factory=list)
+    interpretation_id: str = "continuous"
+    interpretation: str = ""
 

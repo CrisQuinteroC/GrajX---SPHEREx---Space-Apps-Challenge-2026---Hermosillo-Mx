@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GrajX — Public Multi-Epoch &amp; Multi-Band SPHEREx Viewer (NASA)</title>
+  
+  <meta name="description" content="Multi-epoch, multi-band viewer for NASA’s SPHEREx space mission. Temporal analysis across 102 infrared bands.">
+  <meta name="theme-color" content="#003F5C">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="GrajX — Public Multi-Epoch &amp; Multi-Band SPHEREx Viewer (NASA)">
+  <meta property="og:description" content="Multi-epoch, multi-band viewer for NASA’s SPHEREx space mission. Temporal analysis across 102 infrared bands.">
+  <meta property="og:type" content="website">
+
+  <!-- Tipografía Profesional -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+  <!-- Estilos -->
+  <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+
+  <a href="#main-content" class="sr-only sr-only-focusable" data-i18n="skip.link">Skip to image viewer</a>
+
+  <!-- Cabecera -->
+  <header class="site-header" role="banner">
+    <div class="header-container">
+      <a href="." class="brand" aria-label="GrajX Home" data-i18n-aria="brand.home">
+        <div class="brand-logo-icon" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M12 2a10 10 0 0 1 10 10"></path>
+            <path d="M12 22a10 10 0 0 1-10-10"></path>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>GrajX</h1>
+          <span class="brand-badge">NASA SPHEREx</span>
+        </div>
+      </a>
+
+      <div class="header-actions">
+        <span class="header-subtext" data-i18n="brand.subtitle">
+          Space Apps Challenge Hermosillo
+        </span>
+
+        <!-- Botón de Ajustes -->
+        <div class="settings-wrapper" id="settings-wrapper">
+          <button
+            id="btn-settings"
+            class="btn-settings"
+            aria-label="Open settings"
+            data-i18n-aria="settings.open"
+            aria-haspopup="true"
+            aria-expanded="false"
+            aria-controls="settings-panel"
+          >
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+            <span data-i18n="settings.btn">Settings</span>
+          </button>
+
+          <!-- Panel desplegable de Ajustes -->
+          <div
+            id="settings-panel"
+            class="settings-panel"
+            role="menu"
+            aria-label="Settings panel"
+            data-i18n-aria="settings.panelAria"
+            hidden
+          >
+            <div class="settings-panel-header">
+              <span class="settings-panel-title" data-i18n="settings.title">Settings</span>
+            </div>
+
+            <!-- Sección: Apariencia -->
+            <div class="settings-section">
+              <span class="settings-section-label" data-i18n="settings.appearance">Appearance</span>
+
+              <div class="settings-row" role="menuitem">
+                <div class="settings-row-info">
+                  <span class="settings-row-name" data-i18n="settings.colorMode">Color mode</span>
+                  <span class="settings-row-desc" data-i18n="settings.colorModeDesc">Toggle between dark and light</span>
+                </div>
+                <button
+                  id="theme-toggle"
+                  class="theme-toggle-switch"
+                  role="switch"
+                  aria-checked="false"
+                  aria-label="Switch to light mode"
+                  title="Change theme"
+                  data-i18n-title="settings.toggleTitle"
+                >
+                  <span class="theme-toggle-track">
+                    <span class="theme-toggle-icon theme-icon-moon" aria-hidden="true">🌙</span>
+                    <span class="theme-toggle-thumb"></span>
+                    <span class="theme-toggle-icon theme-icon-sun" aria-hidden="true">☀️</span>
+                  </span>
+                  <span class="theme-toggle-label" id="theme-toggle-label">Dark</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Sección: Idioma (se rellena dinámicamente por SettingsPanel.js) -->
+            <div class="settings-section settings-lang-section" id="settings-lang-section"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Contenido Principal -->
+  <main class="app-main" id="main-content" role="main">
+
+    <!-- Buscador de coordenadas celestes y presets -->
+    <section class="search-presets-section" id="search-presets-section" aria-label="Search and test objects" data-i18n-aria="region.search"></section>
+
+    <!-- Disposición de 2 Columnas -->
+    <div class="workspace-grid">
+      
+      <!-- Visor Central (Blink Comparator) -->
+      <section class="viewer-card" id="viewer-card" aria-label="SPHEREx temporal image viewer" data-i18n-aria="region.viewer"></section>
+
+      <!-- Panel Lateral (Metadatos, Espectro y Comparador) -->
+      <aside class="inspector-card" aria-label="Information and spectral fingerprint" data-i18n-aria="region.inspector">
+        <article class="info-box" id="info-box"></article>
+        <article class="spectrum-card" id="spectrum-card"></article>
+        <article class="comparison-card" id="comparison-card"></article>
+      </aside>
+
+    </div>
+
+  </main>
+
+  <!-- Pie de Página -->
+  <footer class="site-footer" role="contentinfo">
+    <p>
+      <span data-i18n="footer.text">GrajX — NASA SPHEREx Mission. Scientific data provided by NASA/IPAC Infrared Science Archive (IRSA).</span>
+    </p>
+  </footer>
+
+  <div id="modal-container"></div>
+
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>
