@@ -1,2 +1,2 @@
-"""GrajX SPHEREx Multi-Epoch & Multi-Band Backend Package."""
+"""CepheusLive SPHEREx Multi-Epoch & Multi-Band Backend Package."""
 

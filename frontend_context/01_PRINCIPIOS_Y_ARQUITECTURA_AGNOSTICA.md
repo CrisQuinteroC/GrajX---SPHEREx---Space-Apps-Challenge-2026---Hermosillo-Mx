@@ -27,7 +27,7 @@ flowchart TD
     end
 
     subgraph L4["Capa 4: Servicios Externos & Backend"]
-        API["Backend FastAPI GrajX (/api/frames, /api/spectrum, /api/presets)"]
+        API["Backend FastAPI CepheusLive (/api/frames, /api/spectrum, /api/presets)"]
         ALADIN["CDS Aladin Lite v3 (Mapas HiPS AllWISE & Gaia DR3)"]
     end
 
@@ -40,7 +40,7 @@ flowchart TD
 
 ## 2. Contrato de Datos con el Backend (API REST)
 
-Toda implementación de frontend debe respetar y consumir las siguientes estructuras de datos enviadas por el backend de GrajX:
+Toda implementación de frontend debe respetar y consumir las siguientes estructuras de datos enviadas por el backend de CepheusLive:
 
 ### A) `GET /api/presets`
 Devuelve el catálogo de los 5 objetos de prueba obligatorios con información amigable para las tarjetas de selección rápida.
@@ -139,7 +139,7 @@ Devuelve el flujo electromagnético a lo largo de las 102 bandas ($0.75\text{–
 Cualquier cambio de vista debe sincronizarse en tiempo real con la URL mediante la API estándar del navegador (`window.history.replaceState`):
 
 ```
-https://grajx.spaceapps.org/?ra=133.79513&dec=-7.24515&fov=6&mode=blink&detector=D5&fps=3&embed=0
+https://cepheuslive.spaceapps.org/?ra=133.79513&dec=-7.24515&fov=6&mode=blink&detector=D5&fps=3&embed=0
 ```
 
 ### Reglas de Sincronización:
@@ -150,7 +150,7 @@ https://grajx.spaceapps.org/?ra=133.79513&dec=-7.24515&fov=6&mode=blink&detector
      - Barra de navegación superior y pie de página.
      - Controles avanzados de desarrollador.
      - Márgenes exteriores y fondo decorativo.
-   - Deja visible únicamente: el reproductor de imágenes, el botón Play/Pausa, el scrubber de épocas y un botón discreto en la esquina: *"Explorar en GrajX ↗"*.
+   - Deja visible únicamente: el reproductor de imágenes, el botón Play/Pausa, el scrubber de épocas y un botón discreto en la esquina: *"Explorar en CepheusLive ↗"*.
    - Este modo es óptimo para **`<iframe>`** en blogs científicos, notas de prensa y plataformas educativas.
 
 ---

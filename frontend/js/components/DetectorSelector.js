@@ -1,5 +1,5 @@
 /**
- * GrajX — DetectorSelector Component
+ * CepheusLive — DetectorSelector Component
  * Selector de los 6 detectores infrarrojos de SPHEREx (D1 a D6) y modo Color Compuesto RGB.
  */
 

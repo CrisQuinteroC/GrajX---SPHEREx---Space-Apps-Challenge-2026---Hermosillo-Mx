@@ -1,5 +1,5 @@
 /**
- * GrajX — BlinkPlayer Component
+ * CepheusLive — BlinkPlayer Component
  * Motor de Renderizado en Canvas 2D/WebGL del Visor Astronómico Multi-Época.
  * Soporta Parpadeo Rápido Seguro, Suma de Luz, Resta Temporal (Dipolo) y Cortina Deslizante.
  */

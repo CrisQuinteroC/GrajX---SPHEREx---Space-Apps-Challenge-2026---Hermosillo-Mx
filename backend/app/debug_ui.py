@@ -1,4 +1,4 @@
-"""Consola HTML interactiva de debug para probar todos los endpoints del backend GrajX."""
+"""Consola HTML interactiva de debug para probar todos los endpoints del backend CepheusLive."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ DEBUG_HTML = """<!DOCTYPE html>
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>GrajX SPHEREx API — Consola de Debug Backend</title>
+  <title>CepheusLive SPHEREx API — Consola de Debug Backend</title>
   <style>
     :root {
       --bg: #070b14;
@@ -225,7 +225,7 @@ DEBUG_HTML = """<!DOCTYPE html>
 <body>
   <header>
     <h1>
-      GrajX — SPHEREx Multi-Epoch API Debug
+      CepheusLive — SPHEREx Multi-Epoch API Debug
       <span class="badge">Backend Sandbox</span>
     </h1>
     <div class="nav-links">

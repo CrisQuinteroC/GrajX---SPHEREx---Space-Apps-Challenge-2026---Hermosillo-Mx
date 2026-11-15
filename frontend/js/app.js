@@ -1,5 +1,5 @@
 /**
- * GrajX — Main Application Bootstrap
+ * CepheusLive — Main Application Bootstrap
  * Orquestador principal de componentes, atajos de teclado y accesibilidad global.
  */
 
@@ -14,7 +14,7 @@ import { EmbedModal } from './components/EmbedModal.js';
 import { SettingsPanel } from './components/SettingsPanel.js';
 import { i18n } from './i18n.js';
 
-class GrajXApp {
+class CepheusLiveApp {
   constructor() {
     this.init();
   }
@@ -61,7 +61,7 @@ class GrajXApp {
     // Atajos de Teclado Accesibles
     this.setupKeyboardShortcuts();
 
-    console.log("%cGrajX — Visor SPHEREx NASA Space Apps Challenge 2026 inicializado.", "color: #00f0ff; font-size: 13px; font-weight: bold;");
+    console.log("%cCepheusLive — Visor SPHEREx NASA Space Apps Challenge 2026 inicializado.", "color: #00f0ff; font-size: 13px; font-weight: bold;");
   }
 
   setupKeyboardShortcuts() {
@@ -93,5 +93,5 @@ class GrajXApp {
 
 // Iniciar aplicación cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
-  new GrajXApp();
+  new CepheusLiveApp();
 });

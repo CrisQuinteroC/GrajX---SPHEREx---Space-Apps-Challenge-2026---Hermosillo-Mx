@@ -1,4 +1,4 @@
-"""Configuración centralizada, rutas y constantes astrofísicas del backend GrajX."""
+"""Configuración centralizada, rutas y constantes astrofísicas del backend CepheusLive."""
 
 from __future__ import annotations
 

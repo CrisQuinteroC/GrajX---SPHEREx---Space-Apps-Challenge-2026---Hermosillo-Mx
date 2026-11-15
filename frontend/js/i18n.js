@@ -1,5 +1,5 @@
 /**
- * GrajX — Sistema de Internacionalización (i18n)
+ * CepheusLive — Sistema de Internacionalización (i18n)
  * Soporta: English (en - Default), Español (es), Français (fr)
  *
  * Reglas:
@@ -18,12 +18,12 @@ export const translations = {
   /* ═══════════════════════════ ENGLISH ═══════════════════════════ */
   en: {
     // Page
-    'page.title': 'GrajX — Public Multi-Epoch & Multi-Band SPHEREx Viewer (NASA)',
+    'page.title': 'CepheusLive — Public Multi-Epoch & Multi-Band SPHEREx Viewer (NASA)',
     'page.description': 'Multi-epoch, multi-band viewer for NASA’s SPHEREx space mission. Temporal analysis across 102 infrared bands.',
     'skip.link': 'Skip to image viewer',
 
     // Header & Settings
-    'brand.home': 'GrajX Home',
+    'brand.home': 'CepheusLive Home',
     'settings.btn': 'Settings',
     'settings.open': 'Open settings',
     'settings.panelAria': 'Settings panel',
@@ -57,7 +57,6 @@ export const translations = {
     'search.optgroupTargets': 'Required benchmark objects (SPHEREx)',
     'search.optgroupCustom': 'Custom',
     'search.customOption': 'Manual coordinates...',
-    'search.presetsBarLabel': 'Preset coordinates:',
     'search.formatError': 'Unrecognized format. Enter RA, Dec coordinates (e.g. 269.452, 4.693) or click the quadrant map.',
     'search.sourceLabel': 'SPHEREx source:',
     'search.sourceAuto': 'SPHEREx Auto (Cache / IRSA)',
@@ -160,7 +159,7 @@ export const translations = {
     'embed.iframeCopied': 'Iframe code copied to clipboard',
 
     // Footer
-    'footer.text': 'GrajX — NASA SPHEREx Mission. Scientific data provided by NASA/IPAC Infrared Science Archive (IRSA).',
+    'footer.text': 'CepheusLive — NASA SPHEREx Mission. Scientific data provided by NASA/IPAC Infrared Science Archive (IRSA).',
 
     // Targets (presets)
     'preset.barnards_star.title': 'High proper motion',
@@ -178,12 +177,12 @@ export const translations = {
   /* ═══════════════════════════ ESPAÑOL ═══════════════════════════ */
   es: {
     // Page
-    'page.title': 'GrajX — Visor público multiépoca y multibanda de SPHEREx (NASA)',
+    'page.title': 'CepheusLive — Visor público multiépoca y multibanda de SPHEREx (NASA)',
     'page.description': 'Visualizador multiépoca y multibanda de la misión espacial SPHEREx de la NASA. Análisis temporal en 102 bandas infrarrojas.',
     'skip.link': 'Saltar al visor de imágenes',
 
     // Header & Settings
-    'brand.home': 'Inicio de GrajX',
+    'brand.home': 'Inicio de CepheusLive',
     'settings.btn': 'Ajustes',
     'settings.open': 'Abrir ajustes',
     'settings.panelAria': 'Panel de ajustes',
@@ -217,7 +216,6 @@ export const translations = {
     'search.optgroupTargets': 'Objetos requeridos (SPHEREx)',
     'search.optgroupCustom': 'Personalizado',
     'search.customOption': 'Coordenadas manuales...',
-    'search.presetsBarLabel': 'Coordenadas predeterminadas:',
     'search.formatError': 'Formato no reconocido. Escribe coordenadas AR, Dec (ej. 269.452, 4.693) o haz clic en el mapa de cuadrantes.',
     'search.sourceLabel': 'Fuente SPHEREx:',
     'search.sourceAuto': 'SPHEREx Auto (Caché / IRSA)',
@@ -320,7 +318,7 @@ export const translations = {
     'embed.iframeCopied': 'Código iframe copiado al portapapeles',
 
     // Footer
-    'footer.text': 'GrajX — Misión SPHEREx de la NASA. Datos científicos proporcionados por el NASA/IPAC Infrared Science Archive (IRSA).',
+    'footer.text': 'CepheusLive — Misión SPHEREx de la NASA. Datos científicos proporcionados por el NASA/IPAC Infrared Science Archive (IRSA).',
 
     // Targets (presets)
     'preset.barnards_star.title': 'Alto movimiento propio',
@@ -338,12 +336,12 @@ export const translations = {
   /* ═══════════════════════════ FRANÇAIS ═══════════════════════════ */
   fr: {
     // Page
-    'page.title': 'GrajX — Visualiseur public multi-époque et multi-bande SPHEREx (NASA)',
+    'page.title': 'CepheusLive — Visualiseur public multi-époque et multi-bande SPHEREx (NASA)',
     'page.description': 'Visualiseur multi-époque et multi-bande de la mission spatiale SPHEREx de la NASA. Analyse temporelle sur 102 bandes infrarouges.',
     'skip.link': "Aller au visualiseur d'images",
 
     // Header & Settings
-    'brand.home': "Accueil GrajX",
+    'brand.home': "Accueil CepheusLive",
     'settings.btn': 'Paramètres',
     'settings.open': 'Ouvrir les paramètres',
     'settings.panelAria': 'Panneau des paramètres',
@@ -377,7 +375,6 @@ export const translations = {
     'search.optgroupTargets': 'Objets de référence (SPHEREx)',
     'search.optgroupCustom': 'Personnalisé',
     'search.customOption': 'Coordonnées manuelles...',
-    'search.presetsBarLabel': 'Coordonnées prédéfinies :',
     'search.formatError': 'Format non reconnu. Saisissez des coordonnées AR, Déc (ex. 269.452, 4.693) ou cliquez sur la carte des quadrants.',
     'search.sourceLabel': 'Source SPHEREx :',
     'search.sourceAuto': 'SPHEREx Auto (Cache / IRSA)',
@@ -480,7 +477,7 @@ export const translations = {
     'embed.iframeCopied': 'Code iframe copié dans le presse-papiers',
 
     // Footer
-    'footer.text': "GrajX — Mission SPHEREx de la NASA. Données scientifiques fournies par le NASA/IPAC Infrared Science Archive (IRSA).",
+    'footer.text': "CepheusLive — Mission SPHEREx de la NASA. Données scientifiques fournies par le NASA/IPAC Infrared Science Archive (IRSA).",
 
     // Targets (presets)
     'preset.barnards_star.title': 'Fort mouvement propre',

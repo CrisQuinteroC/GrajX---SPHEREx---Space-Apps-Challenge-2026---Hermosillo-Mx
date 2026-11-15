@@ -1,4 +1,4 @@
-# Guía de Conexión Backend -> Frontend (GrajX SPHEREx API)
+# Guía de Conexión Backend -> Frontend (CepheusLive SPHEREx API)
 
 > **Propósito:** Documentar paso a paso cómo levantar el backend en **FastAPI**, probarlo en la consola de debug (`/debug`) o vía `curl`, y conectarlo desde **React / TypeScript** (`frontend/src/api/spherexApi.ts`).
 

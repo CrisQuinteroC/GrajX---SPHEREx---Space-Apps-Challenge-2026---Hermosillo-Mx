@@ -1,5 +1,5 @@
 /**
- * GrajX — Accessibility Styles (WCAG 2.1 AAA / AA)
+ * CepheusLive — Accessibility Styles (WCAG 2.1 AAA / AA)
  * Garantiza usabilidad para niños, personas mayores y diversidad funcional.
  */
 
@@ -7,6 +7,7 @@
    1. CONTROL DE MOVIMIENTO Y SEGURIDAD FOTOSENSIBLE
    ======================================================== */
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {

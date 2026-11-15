@@ -184,8 +184,9 @@ AGENTS.md
 backend/context/
 frontend_context/
 
-# GrajX SPHEREx data caches & heavy FITS binaries
+# CepheusLive SPHEREx data caches & heavy FITS binaries
 data/cache/
 data/presets/**/*.fits
 backend/app/static_cache/
 
+Dockerfile

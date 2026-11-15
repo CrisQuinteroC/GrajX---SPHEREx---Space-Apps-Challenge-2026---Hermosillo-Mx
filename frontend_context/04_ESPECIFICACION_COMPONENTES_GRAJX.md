@@ -1,4 +1,4 @@
-# 🧩 04. Especificación Detallada de Componentes GrajX
+# 🧩 04. Especificación Detallada de Componentes CepheusLive
 
 Este documento desglosa cada componente de la interfaz de usuario, definiendo su propósito, comportamiento accesible, controles e interactividad.
 

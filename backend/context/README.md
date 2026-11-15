@@ -1,6 +1,6 @@
-# Backend Context — GrajX (SPHEREx Multi-Epoch & Multi-Band Viewer)
+# Backend Context — CepheusLive (SPHEREx Multi-Epoch & Multi-Band Viewer)
 
-> **Propósito:** Esta carpeta (`backend/context/`) reúne las especificaciones técnicas, contratos de API, pipelines astrofísicos y reglas de implementación para desarrollar el backend en **FastAPI + Astropy** del proyecto **GrajX** (NASA Space Apps Challenge 2026 — Hermosillo, Mx).
+> **Propósito:** Esta carpeta (`backend/context/`) reúne las especificaciones técnicas, contratos de API, pipelines astrofísicos y reglas de implementación para desarrollar el backend en **FastAPI + Astropy** del proyecto **CepheusLive** (NASA Space Apps Challenge 2026 — Hermosillo, Mx).
 >
 > Complementa a [`AGENTS.md`](../../AGENTS.md) y [`prompt.md`](../../prompt.md).
 

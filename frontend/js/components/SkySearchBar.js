@@ -1,5 +1,5 @@
 /**
- * GrajX — SkySearchBar Component
+ * CepheusLive — SkySearchBar Component
  * Barra de control manual (AR, Dec), FOV, fuente SPHEREx y Mapa Celeste de Cuadrantes (Q1–Q4).
  */
 
@@ -52,7 +52,6 @@ export class SkySearchBar {
     if (Array.isArray(presets) && presets.length > 0) {
       this.targetList = presets;
       this.populateTargetControls();
-      this.attachQuickBarEvents();
     }
   }
 
@@ -130,9 +129,6 @@ export class SkySearchBar {
         </div>
       </div>
 
-      <!-- Barra de Acceso Rápido a Coordenadas Predeterminadas -->
-      <div class="preset-quick-bar" id="preset-quick-bar"></div>
-
       <!-- Mapa Interactivo de Cuadrantes Celestes -->
       <div class="sky-quadrant-panel" id="sky-quadrant-panel">
         <div class="sky-quadrant-header">
@@ -185,29 +181,6 @@ export class SkySearchBar {
         </optgroup>
       `;
     }
-
-    const quickBar = this.container.querySelector('#preset-quick-bar');
-    if (quickBar) {
-      quickBar.innerHTML = `
-        <span class="preset-quick-label">${i18n.t('search.presetsBarLabel')}</span>
-        ${this.targetList.map((item) => {
-          const { ra, dec } = this.getPresetCoords(item);
-          const q = this.getQuadrantTag(ra);
-          const title = i18n.presetText(item, 'title', item.friendly_title || item.phenomenon || '');
-          return `
-            <button
-              type="button"
-              class="preset-quick-btn ${item.id === currentPreset ? 'active' : ''}"
-              data-preset="${item.id}"
-              title="${title} — ${q}"
-            >
-              <span class="preset-quick-name">${item.name}</span>
-              <span class="preset-quick-coords">${ra.toFixed(5)}°, ${dec >= 0 ? '+' : ''}${dec.toFixed(5)}°</span>
-            </button>
-          `;
-        }).join('')}
-      `;
-    }
   }
 
   selectPresetById(presetId) {
@@ -231,10 +204,6 @@ export class SkySearchBar {
     if (hoverReadout && !this.hoverCoords) {
       hoverReadout.textContent = this.formatCoordReadout(ra, dec);
     }
-
-    this.container.querySelectorAll('.preset-quick-btn').forEach((btn) => {
-      btn.classList.toggle('active', btn.dataset.preset === item.id);
-    });
 
     const recDetector = (item.recommended_detector && item.recommended_detector !== 'all')
       ? item.recommended_detector
@@ -708,14 +677,6 @@ export class SkySearchBar {
     hint.textContent = `~${est.estimated_frames}f · ${est.estimated_size_mb} MB`;
   }
 
-  attachQuickBarEvents() {
-    this.container.querySelectorAll('.preset-quick-btn').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        this.selectPresetById(btn.dataset.preset);
-      });
-    });
-  }
-
   /** Eventos ligados al DOM actual (se vuelven a ligar tras cada render). */
   attachDomEvents() {
     const targetSelect = this.container.querySelector('#target-list-select');
@@ -738,8 +699,6 @@ export class SkySearchBar {
         this.selectPresetById(selectedId);
       });
     }
-
-    this.attachQuickBarEvents();
 
     // FOV en tiempo real (0 ms en UI) + throttle ligero para estimación de transferencia
     fovSlider.addEventListener('input', (e) => {
@@ -1014,9 +973,6 @@ export class SkySearchBar {
     store.subscribe('activePresetId', (id) => {
       const select = this.container.querySelector('#target-list-select');
       if (select) select.value = id || 'custom';
-      this.container.querySelectorAll('.preset-quick-btn').forEach((btn) => {
-        btn.classList.toggle('active', btn.dataset.preset === id);
-      });
     });
 
     store.subscribe('ra', (_ra, s) => syncCoordsDisplay(s));

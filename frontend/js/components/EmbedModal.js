@@ -1,5 +1,5 @@
 /**
- * GrajX — EmbedModal Component
+ * CepheusLive — EmbedModal Component
  * Modal accesible para Compartir URL e Incrustar visor mediante iframe.
  */
 
@@ -75,7 +75,7 @@ export class EmbedModal {
     embedUrl.searchParams.set('embed', '1');
 
     urlBox.textContent = currentUrl;
-    iframeBox.textContent = `<iframe src="${embedUrl.toString()}" width="100%" height="600" frameborder="0" allowfullscreen title="GrajX SPHEREx Viewer"></iframe>`;
+    iframeBox.textContent = `<iframe src="${embedUrl.toString()}" width="100%" height="600" frameborder="0" allowfullscreen title="CepheusLive SPHEREx Viewer"></iframe>`;
   }
 
   open() {

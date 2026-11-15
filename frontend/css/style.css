@@ -1,5 +1,5 @@
 /**
- * GrajX — SPHEREx NASA Space Apps Challenge 2026
+ * CepheusLive — SPHEREx NASA Space Apps Challenge 2026
  * Paleta Predominante Oscura: Curiosidad Cósmica y Esperanza.
  * 
  * - Fondo Oscuro Abisal: #060913 (El misterio del universo)
@@ -14,7 +14,9 @@
 /* ========================================================
    RESET Y BASE ESTRUCTURAL
    ======================================================== */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -157,7 +159,7 @@ body {
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border-warm);
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-card), 0 0 0 1px rgba(0,0,0,0.05);
+  box-shadow: var(--shadow-card), 0 0 0 1px rgba(0, 0, 0, 0.05);
   z-index: 200;
   overflow: hidden;
   animation: settingsFadeIn 160ms ease forwards;
@@ -168,8 +170,15 @@ body {
 }
 
 @keyframes settingsFadeIn {
-  from { opacity: 0; transform: translateY(-6px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .settings-panel-header {
@@ -267,7 +276,7 @@ body {
   border-radius: 50%;
   background: var(--color-text-muted);
   transition: left var(--transition-normal), background var(--transition-normal);
-  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
 }
 
 .theme-toggle-switch[aria-checked="true"] .theme-toggle-thumb {
@@ -1095,8 +1104,15 @@ body {
 }
 
 @keyframes toastSlideIn {
-  from { transform: translateY(10px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+  from {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 .site-footer {
@@ -1299,11 +1315,9 @@ body.embed-mode .viewer-card {
 /* Estado activo */
 .lang-btn.active {
   border-color: var(--color-curiosity-cyan);
-  background: linear-gradient(
-    160deg,
-    rgba(var(--color-curiosity-cyan-rgb), 0.18),
-    rgba(var(--color-curiosity-cyan-rgb), 0.05)
-  );
+  background: linear-gradient(160deg,
+      rgba(var(--color-curiosity-cyan-rgb), 0.18),
+      rgba(var(--color-curiosity-cyan-rgb), 0.05));
   color: var(--color-text-main);
   box-shadow: var(--shadow-glow-cyan), inset 0 0 0 1px rgba(var(--color-curiosity-cyan-rgb), 0.35);
 }
@@ -1349,6 +1363,7 @@ body.embed-mode .viewer-card {
     min-width: 0;
     width: min(320px, calc(100vw - 24px));
   }
+
   .lang-btn {
     padding: 10px 4px 8px;
   }
@@ -1356,12 +1371,14 @@ body.embed-mode .viewer-card {
 
 /* Respeta "reducir movimiento" */
 @media (prefers-reduced-motion: reduce) {
+
   .lang-btn,
   .lang-btn::before,
   .lang-flag,
   .lang-check {
     transition: none;
   }
+
   .lang-btn:hover,
   .lang-btn:active {
     transform: none;
@@ -1593,71 +1610,4 @@ body.embed-mode .viewer-card {
   height: 190px;
   display: block;
   cursor: crosshair;
-}
-
-/* ========================================================
-   BARRA DE COORDENADAS PREDETERMINADAS (5 OBJETOS BENCHMARK)
-   ======================================================== */
-.preset-quick-bar {
-  margin-top: var(--space-sm);
-  background: var(--color-bg-surface);
-  border: 1px solid var(--color-border-warm);
-  border-radius: var(--radius-md);
-  padding: var(--space-xs) var(--space-md);
-  box-shadow: var(--shadow-card);
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.preset-quick-label {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--color-text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-right: 4px;
-}
-
-.preset-quick-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: var(--color-bg-subtle);
-  border: 1px solid var(--color-border-warm);
-  border-radius: var(--radius-sm);
-  padding: 5px 10px;
-  color: var(--color-text-main);
-  font-family: var(--font-family-body);
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
-}
-
-.preset-quick-btn:hover {
-  background: var(--color-bg-subtle-hover);
-  border-color: var(--color-curiosity-cyan);
-}
-
-.preset-quick-btn.active {
-  background: rgba(0, 229, 255, 0.14);
-  border-color: var(--color-curiosity-cyan);
-  color: var(--color-curiosity-cyan);
-}
-
-.light-mode .preset-quick-btn.active {
-  background: rgba(29, 78, 216, 0.12);
-}
-
-.preset-quick-coords {
-  font-family: var(--font-family-mono);
-  font-size: 11px;
-  font-weight: 400;
-  color: var(--color-text-muted);
-}
-
-.preset-quick-btn.active .preset-quick-coords {
-  color: var(--color-curiosity-cyan);
 }

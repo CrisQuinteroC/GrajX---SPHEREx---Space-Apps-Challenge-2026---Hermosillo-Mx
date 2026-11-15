@@ -87,7 +87,7 @@ La disposición se organiza en **3 áreas de enfoque claro** para no dispersar l
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
-│  🌌 GrajX [NASA SPHEREx]    [Barra de Búsqueda y Selector de Presets]  │  <-- CABECERA
+│  🌌 CepheusLive [NASA SPHEREx]    [Barra de Búsqueda y Selector de Presets]  │  <-- CABECERA
 ├────────────────────────────────────────┬───────────────────────────────┤
 │                                        │                               │
 │                                        │  📊 PANEL DE INFORMACIÓN      │

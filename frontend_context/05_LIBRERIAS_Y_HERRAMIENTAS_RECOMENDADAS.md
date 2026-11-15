@@ -6,7 +6,7 @@ Este catálogo reúne las **mejores librerías y herramientas modernas del ecosi
 
 ## 1. Visores Astronómicos y Capas Celestes
 
-| Herramienta | Tipo | ¿Por qué usarla en GrajX? | Enlace / Referencia |
+| Herramienta | Tipo | ¿Por qué usarla en CepheusLive? | Enlace / Referencia |
 |---|---|---|---|
 | **Aladin Lite v3** | Biblioteca JavaScript oficial del CDS (*Centre de Données astronomiques de Strasbourg*) | Estándar mundial para visualizar el cielo. Permite superponer mapas HiPS de **AllWISE (2010)**, **Gaia DR3** (con vectores de movimiento propio) y catálogos SIMBAD en WebGL con sincronización de coordenadas en 3 líneas de código. | [Aladin Lite v3 Docs](https://aladin.cds.unistra.fr/AladinLite/doc/) |
 | **`fitsjs` / `@hscmap/fits`** | Decodificador FITS cliente | Permite leer cabeceras FITS y arrays de flotantes directamente en el navegador si se desea inspeccionar metadatos WCS sin llamar al backend. | [fitsjs GitHub](https://github.com/astrojs/fitsjs) |
@@ -15,7 +15,7 @@ Este catálogo reúne las **mejores librerías y herramientas modernas del ecosi
 
 ## 2. Motores de Renderizado de Imagen y Canvas (60 FPS)
 
-| Herramienta | Enfoque | Beneficio Principal | Casos de Uso en GrajX |
+| Herramienta | Enfoque | Beneficio Principal | Casos de Uso en CepheusLive |
 |---|---|---|---|
 | **Canvas 2D Nativo (`HTMLCanvasElement`)** | Estándar web sin dependencias | Cero sobrecarga de paquetes, control total sobre `ctx.drawImage()`, manipulación directa de píxeles (`ImageData`) para contraste dinámico y filtros de color. | *Blink Player* básico y modo cortina deslizante. |
 | **PixiJS** | Motor WebGL 2D acelerado por hardware | Framerates ultra altos (60-120 fps) incluso con zoom y paneo continuo de imágenes de alta resolución. | Ideal si se desea zoom astronómico infinito con arrastre táctil fluido. |

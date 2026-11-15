@@ -1,5 +1,5 @@
 """
-GrajX — Lanzador Rápido del Servidor Local
+CepheusLive — Lanzador Rápido del Servidor Local
 Ejecuta: python run_app.py
 Abre en el navegador: http://localhost:8000
 """
@@ -10,7 +10,7 @@ import uvicorn
 
 if __name__ == "__main__":
     print("=" * 60)
-    print("Iniciando GrajX — Visor SPHEREx NASA Space Apps Challenge 2026")
+    print("Iniciando CepheusLive — Visor SPHEREx NASA Space Apps Challenge 2026")
     print("URL Local: http://localhost:8000")
     print("=" * 60)
     

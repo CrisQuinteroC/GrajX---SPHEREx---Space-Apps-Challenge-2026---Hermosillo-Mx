@@ -1,5 +1,5 @@
 /**
- * GrajX — State Management & Reactive Store
+ * CepheusLive — State Management & Reactive Store
  * Maneja el estado global reactivo y sincroniza la URL en tiempo real (Deep Linking).
  */
 import { i18n } from './i18n.js';
@@ -7,7 +7,7 @@ import { i18n } from './i18n.js';
 class ReactiveState {
   constructor() {
     this.listeners = new Map();
-    
+
     // Parsear parámetros iniciales de la URL
     const urlParams = new URLSearchParams(window.location.search);
 
@@ -77,7 +77,7 @@ class ReactiveState {
 
   setState(partialState) {
     const changedKeys = [];
-    
+
     for (const [key, value] of Object.entries(partialState)) {
       if (this.state[key] !== value) {
         this.state[key] = value;

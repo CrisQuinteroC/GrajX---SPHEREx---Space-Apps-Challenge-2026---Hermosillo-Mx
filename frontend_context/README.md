@@ -1,6 +1,6 @@
-# 🌌 Contexto Maestro Frontend — Proyecto GrajX (SPHEREx NASA)
+# 🌌 Contexto Maestro Frontend — Proyecto CepheusLive (SPHEREx NASA)
 
-Bienvenido a la **Carpeta de Contexto Frontend** de **GrajX**. Este directorio es la **fuente de verdad permanente y exclusiva para la interfaz de usuario, experiencia de usuario (UX/UI), accesibilidad universal y diseño visual** de la plataforma web pública para la misión espacial **SPHEREx** de la NASA (NASA Space Apps Challenge Hermosillo).
+Bienvenido a la **Carpeta de Contexto Frontend** de **CepheusLive**. Este directorio es la **fuente de verdad permanente y exclusiva para la interfaz de usuario, experiencia de usuario (UX/UI), accesibilidad universal y diseño visual** de la plataforma web pública para la misión espacial **SPHEREx** de la NASA (NASA Space Apps Challenge Hermosillo).
 
 ---
 

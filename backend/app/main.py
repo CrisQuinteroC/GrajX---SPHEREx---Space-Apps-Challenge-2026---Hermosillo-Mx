@@ -1,4 +1,4 @@
-"""Aplicación FastAPI principal para el backend GrajX (SPHEREx Multi-Epoch & Multi-Band)."""
+"""Aplicación FastAPI principal para el backend CepheusLive (SPHEREx Multi-Epoch & Multi-Band)."""
 
 from __future__ import annotations
 
@@ -88,7 +88,7 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(
-    title="GrajX — SPHEREx Multi-Epoch & Multi-Band API",
+    title="CepheusLive — SPHEREx Multi-Epoch & Multi-Band API",
     description=(
         "Backend científico en FastAPI + Astropy para visualizar series temporales multi-banda "
         "(0.75–5.0 µm) de la misión SPHEREx de la NASA con reproyección WCS, modo blink/stack/diff/rgb, "

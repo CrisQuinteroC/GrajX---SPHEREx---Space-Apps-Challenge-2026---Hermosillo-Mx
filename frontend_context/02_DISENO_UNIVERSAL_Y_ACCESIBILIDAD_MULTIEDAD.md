@@ -2,13 +2,13 @@
 
 > **Mantra de Inclusión:** *"El universo pertenece a todos. Si nuestra interfaz excluye a un niño o confunde a un abuelo, hemos fallado en la misión de divulgación de la NASA."*
 
-Este documento establece las directrices de diseño centrado en el ser humano para garantizar que la plataforma **GrajX** sea utilizable, disfrutable y educativa para usuarios sin conocimientos astronómicos de cualquier edad.
+Este documento establece las directrices de diseño centrado en el ser humano para garantizar que la plataforma **CepheusLive** sea utilizable, disfrutable y educativa para usuarios sin conocimientos astronómicos de cualquier edad.
 
 ---
 
 ## 1. Matriz de Adaptabilidad por Rango Etario
 
-| Perfil | Características Clave | Barreras Habituales | Solución de Diseño en GrajX |
+| Perfil | Características Clave | Barreras Habituales | Solución de Diseño en CepheusLive |
 |---|---|---|---|
 | **Infantil / Escolar** *(6 a 12 años)* | - Aprendizaje visual y lúdico.<br>- Curiosidad inmediata.<br>- Poca tolerancia al texto denso. | - Jerga técnica (RA/Dec, ICRS, WCS, Mag).<br>- Interfaces grises o estáticas.<br>- Frustración ante tiempos de espera. | - **Modo "Detective Cósmico":** Metáfora de juego (encontrar qué se movió o cambió).<br>- Iconos grandes ilustrados (la tortuga 🐢 y la liebre 🐇 para la velocidad).<br>- Micro-recompensas visuales y comparaciones del mundo real (ej. *"este campo es del tamaño de la Luna llena"*). |
 | **Jóvenes y Adultos No Expertos** *(13 a 64 años)* | - Familiarizados con apps de streaming y redes.<br>- Búsqueda de inmediatez y estética moderna.<br>- Desean compartir descubrimientos. | - Interfaces sobrecargadas tipo software de escritorio de los 90.<br>- Falta de contexto sobre qué están viendo. | - **Controles tipo reproductor de vídeo moderno** (barra de tiempo fluida con Play/Pausa estilo YouTube/Netflix).<br>- Tarjetas de presets atractivas con datos curiosos ("Fun Facts").<br>- Botón de compartir en redes o incrustar en 1 clic. |

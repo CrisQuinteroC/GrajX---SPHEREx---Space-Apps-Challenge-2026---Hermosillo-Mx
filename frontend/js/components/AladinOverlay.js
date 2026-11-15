@@ -1,5 +1,5 @@
 /**
- * GrajX — AladinOverlay Component
+ * CepheusLive — AladinOverlay Component
  * Comparador Histórico entre AllWISE (2010) y SPHEREx (2025) con 15 años de línea base.
  * Muestra vectores de movimiento propio de Gaia DR3.
  */

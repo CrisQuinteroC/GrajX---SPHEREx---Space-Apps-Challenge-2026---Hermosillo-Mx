@@ -1,5 +1,5 @@
 /**
- * GrajX — SpectrumChart Component
+ * CepheusLive — SpectrumChart Component
  * Visualizador de Distribución Espectral de Energía (102 bandas de 0.75 a 5.0 um).
  */
 

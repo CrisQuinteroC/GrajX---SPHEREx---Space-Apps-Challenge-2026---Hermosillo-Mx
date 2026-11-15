@@ -1,13 +1,13 @@
 # Coordenadas de Búsqueda Manual — Visor SPHEREx / Gaia DR3 / WISE
 
-Esta guía reúne las coordenadas celestes (**ICRS J2000**) recomendadas para explorar manualmente en la barra de búsqueda o desde el **Mapa Celeste de Cuadrantes** del visor **GrajX** usando datos de la misión **NASA SPHEREx** ($0.75\text{–}5.0\,\mu\text{m}$) en comparativa astrométrica y fotométrica con **Gaia DR3** y **WISE / AllWISE**.
+Esta guía reúne las coordenadas celestes (**ICRS J2000**) recomendadas para explorar manualmente en la barra de búsqueda o desde el **Mapa Celeste de Cuadrantes** del visor **CepheusLive** usando datos de la misión **NASA SPHEREx** ($0.75\text{–}5.0\,\mu\text{m}$) en comparativa astrométrica y fotométrica con **Gaia DR3** y **WISE / AllWISE**.
 
 ---
 
 ## Cómo buscar manualmente
 
 1. Copia cualquiera de las coordenadas en formato **Decimal (`RA, Dec`)** o **Sexagesimal (`HHh MMm SSs ±DD° MM' SS"`)** de las tablas inferiores.
-2. Pégala en el campo **Coordenadas (RA, Dec)** en la barra superior de GrajX y presiona **Enter** o haz clic en **Cargar parche**.
+2. Pégala en el campo **Coordenadas (RA, Dec)** en la barra superior de CepheusLive y presiona **Enter** o haz clic en **Cargar parche**.
 3. También puedes hacer clic directamente en cualquier región o cuadrante (`Q1`–`Q4`) dentro del **Mapa Celeste de Cuadrantes** para cargar la posición seleccionada.
 4. Ajusta el **FOV** (`1.0'` a `30.0'`) y el detector (`D1`–`D6`, `Todos` o `Compuesto RGB`) para observar paralaje, movimiento propio, variabilidad estelar o bandas de hielo de agua ($\text{H}_2\text{O}$) y metano ($\text{CH}_4$).
 

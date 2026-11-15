@@ -1,2 +1,2 @@
-"""Suite de pruebas del backend GrajX SPHEREx."""
+"""Suite de pruebas del backend CepheusLive SPHEREx."""
 

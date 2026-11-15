@@ -1,7 +1,7 @@
 # 📜 06. Directrices y Reglas de Oro para Agentes de IA y Desarrolladores
 
 > **ATENCIÓN AGENTES DE IA (Copilot, Antigravity, Cursor, Claude, etc.):**  
-> Cuando generes o modifiques código de la interfaz de usuario de GrajX, **DEBES CUMPLIR ESTAS REGLAS SIN EXCEPCIÓN**. Son los principios rectores que garantizan la calidad del proyecto para el NASA Space Apps Challenge.
+> Cuando generes o modifiques código de la interfaz de usuario de CepheusLive, **DEBES CUMPLIR ESTAS REGLAS SIN EXCEPCIÓN**. Son los principios rectores que garantizan la calidad del proyecto para el NASA Space Apps Challenge.
 
 ---
 

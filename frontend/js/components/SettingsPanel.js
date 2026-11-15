@@ -1,5 +1,5 @@
 /**
- * GrajX — SettingsPanel Component
+ * CepheusLive — SettingsPanel Component
  * Panel de ajustes desplegable en el header con:
  *  - Toggle de tema claro/oscuro
  *  - Selector de idioma (en / es / fr) con botones de tarjeta + bandera SVG

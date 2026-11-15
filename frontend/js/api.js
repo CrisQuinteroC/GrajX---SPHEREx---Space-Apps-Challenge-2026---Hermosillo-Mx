@@ -1,5 +1,5 @@
 /**
- * GrajX — API Client
+ * CepheusLive — API Client
  * Conexión directa con la API REST en Python (FastAPI).
  * Provee preparación completa para ingesta de datos reales FITS / Cutouts de IRSA
  * y mecanismo de respaldo local para los 5 objetos de prueba.
@@ -260,8 +260,8 @@ export class ApiClient {
           status: index === 2 && isBarnard ? "warning" : "excellent",
           score_percent: index === 2 && isBarnard ? 88 : 99,
           flags: index === 2 && isBarnard ? ["diffuse_zodiacal_light"] : [],
-          message: index === 2 && isBarnard 
-            ? "Zodiacal scattering corrected.": "Nominal calibration, no artifacts."
+          message: index === 2 && isBarnard
+            ? "Zodiacal scattering corrected." : "Nominal calibration, no artifacts."
         }
       };
     });

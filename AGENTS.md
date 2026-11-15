@@ -1,6 +1,6 @@
 # AGENTS.md — Guía Maestra del Proyecto y Contexto para Agentes de IA
 
-> **Proyecto:** GrajX — Visor Web Público Multi-Época y Multi-Banda para la Misión **SPHEREx** de la NASA  
+> **Proyecto:** CepheusLive — Visor Web Público Multi-Época y Multi-Banda para la Misión **SPHEREx** de la NASA  
 > **Evento:** NASA Space Apps Challenge 2026 — Sede Hermosillo, Mx (Hackathon de 48 horas)  
 > **Propósito de este documento:** Servir como **archivo de contexto único (Single Source of Truth)** para agentes de IA (Copilot, Antigravity, Cursor, Claude, etc.) y como **guía arquitectónica, científica y operativa** para el equipo humano de desarrollo.
 

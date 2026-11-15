@@ -1,4 +1,4 @@
-"""Esquemas Pydantic y enumeraciones para la API REST de GrajX."""
+"""Esquemas Pydantic y enumeraciones para la API REST de CepheusLive."""
 
 from __future__ import annotations
 

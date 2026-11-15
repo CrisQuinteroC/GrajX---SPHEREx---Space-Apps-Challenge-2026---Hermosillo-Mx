@@ -1,5 +1,5 @@
 /**
- * GrajX — MetadataPanel Component
+ * CepheusLive — MetadataPanel Component
  * Exposición de Metadatos Científicos y Semáforo de Calidad/Contaminación.
  * Todos los textos se traducen en el cliente (los datos del API se usan solo como respaldo).
  */

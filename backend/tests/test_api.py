@@ -14,7 +14,7 @@ class TestBackendApi(unittest.TestCase):
         with TestClient(app) as client:
             dbg = client.get("/debug")
             self.assertEqual(dbg.status_code, 200)
-            self.assertIn("GrajX", dbg.text)
+            self.assertIn("CepheusLive", dbg.text)
 
             root = client.get("/", follow_redirects=False)
             self.assertIn(root.status_code, (200, 302, 307))
