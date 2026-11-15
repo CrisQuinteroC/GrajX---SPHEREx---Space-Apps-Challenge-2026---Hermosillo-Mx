@@ -2,6 +2,7 @@
  * GrajX — State Management & Reactive Store
  * Maneja el estado global reactivo y sincroniza la URL en tiempo real (Deep Linking).
  */
+import { i18n } from './i18n.js';
 
 class ReactiveState {
   constructor() {
@@ -26,10 +27,13 @@ class ReactiveState {
       currentFrameIndex: 0,
       isPlaying: urlParams.get('play') === '1',
       fps: Math.min(Math.max(parseFloat(urlParams.get('fps')) || 2.0, 0.5), 5.0),
-      splitPosition: 0.5, // Para modo cortina deslizante
+      splitPosition: 0.5,
 
       // Identificador de objeto actual
       activePresetId: urlParams.get('preset') || null,
+
+      // Idioma activo (Default 'en')
+      language: i18n.locale,
 
       // Modos de accesibilidad y presentación
       embed: urlParams.get('embed') === '1' || urlParams.get('embed') === 'true',
@@ -45,23 +49,19 @@ class ReactiveState {
       error: null
     };
 
-    // Si el usuario tiene reducción de movimiento activada, no auto-reproducir
     if (this.state.reducedMotion) {
       this.state.isPlaying = false;
     }
   }
 
-  // Suscribirse a cambios de una propiedad o de todo el estado
   subscribe(key, callback) {
     if (!this.listeners.has(key)) {
       this.listeners.set(key, []);
     }
     this.listeners.get(key).push(callback);
-    // Ejecutar callback inmediatamente con el valor actual
     callback(this.state[key], this.state);
   }
 
-  // Actualizar una o varias propiedades del estado
   setState(partialState) {
     const changedKeys = [];
     
@@ -73,20 +73,17 @@ class ReactiveState {
     }
 
     if (changedKeys.length > 0) {
-      // Sincronizar URL si cambiaron parámetros de navegación relevantes
       const urlRelevantKeys = ['ra', 'dec', 'fov', 'mode', 'detector', 'fps', 'preset', 'embed'];
       if (changedKeys.some(k => urlRelevantKeys.includes(k))) {
         this.syncUrl();
       }
 
-      // Notificar a los observadores específicos
       changedKeys.forEach(key => {
         if (this.listeners.has(key)) {
           this.listeners.get(key).forEach(cb => cb(this.state[key], this.state));
         }
       });
 
-      // Notificar a observadores globales
       if (this.listeners.has('*')) {
         this.listeners.get('*').forEach(cb => cb(this.state));
       }
@@ -97,7 +94,6 @@ class ReactiveState {
     return this.state;
   }
 
-  // Sincronizar URL usando History API sin recargar
   syncUrl() {
     const params = new URLSearchParams();
     params.set('ra', this.state.ra.toFixed(5));

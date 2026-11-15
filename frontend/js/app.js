@@ -11,6 +11,8 @@ import { SpectrumChart } from './components/SpectrumChart.js';
 import { AladinOverlay } from './components/AladinOverlay.js';
 import { MetadataPanel } from './components/MetadataPanel.js';
 import { EmbedModal } from './components/EmbedModal.js';
+import { SettingsPanel } from './components/SettingsPanel.js';
+import { i18n } from './i18n.js';
 
 class GrajXApp {
   constructor() {
@@ -18,12 +20,15 @@ class GrajXApp {
   }
 
   init() {
+    // Aplicar i18n al DOM inicial
+    i18n.applyToDOM();
+
     // Verificar si estamos en modo embed
     if (store.getState().embed) {
       document.body.classList.add('embed-mode');
     }
 
-    // Inicializar componentes
+    // Inicializar los 5 componentes principales
     const searchContainer = document.querySelector('#search-presets-section');
     if (searchContainer) new SkySearchBar(searchContainer);
 
@@ -45,7 +50,15 @@ class GrajXApp {
     const modalContainer = document.querySelector('#modal-container');
     if (modalContainer) new EmbedModal(modalContainer);
 
-    // Atajos de Teclado Accesibles (Jakob's Law: Controles multimedia universales)
+    // Inicializar panel de ajustes
+    new SettingsPanel();
+
+    // Escuchar cambios globales de idioma
+    window.addEventListener('grajx:locale-changed', () => {
+      i18n.applyToDOM();
+    });
+
+    // Atajos de Teclado Accesibles
     this.setupKeyboardShortcuts();
 
     console.log("%cGrajX — Visor SPHEREx NASA Space Apps Challenge 2026 inicializado.", "color: #00f0ff; font-size: 13px; font-weight: bold;");
@@ -53,7 +66,6 @@ class GrajXApp {
 
   setupKeyboardShortcuts() {
     window.addEventListener('keydown', (e) => {
-      // Ignorar si el usuario está escribiendo en el input de búsqueda
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
       if (e.code === 'Space' || e.key === 'k') {
@@ -69,7 +81,6 @@ class GrajXApp {
         const btnNext = document.querySelector('#btn-step-next');
         if (btnNext) btnNext.click();
       } else if (e.key === 'm' || e.key === 'M') {
-        // Rotar entre los 4 modos de visualización
         const modes = ['diff', 'blink', 'stack', 'curtain'];
         const currentMode = store.getState().mode;
         const nextMode = modes[(modes.indexOf(currentMode) + 1) % modes.length];

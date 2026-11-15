@@ -6,6 +6,7 @@
 
 import { store } from '../state.js';
 import { api } from '../api.js';
+import { i18n } from '../i18n.js';
 
 export class BlinkPlayer {
   constructor(container) {
@@ -40,16 +41,16 @@ export class BlinkPlayer {
       <div class="viewer-top-bar">
         <div class="mode-selector-pill" role="tablist">
           <button type="button" class="mode-tab-btn active" data-mode="diff" role="tab">
-            <span>Diferencia</span>
+            <span data-i18n="player.modeDiff">${i18n.t('player.modeDiff')}</span>
           </button>
           <button type="button" class="mode-tab-btn" data-mode="blink" role="tab">
-            <span>Parpadeo</span>
+            <span data-i18n="player.modeBlink">${i18n.t('player.modeBlink')}</span>
           </button>
           <button type="button" class="mode-tab-btn" data-mode="stack" role="tab">
-            <span>Coadición</span>
+            <span data-i18n="player.modeStack">${i18n.t('player.modeStack')}</span>
           </button>
           <button type="button" class="mode-tab-btn" data-mode="curtain" role="tab">
-            <span>Cortina</span>
+            <span data-i18n="player.modeCurtain">${i18n.t('player.modeCurtain')}</span>
           </button>
         </div>
 
@@ -61,15 +62,15 @@ export class BlinkPlayer {
         
         <div class="canvas-epoch-watermark">
           <div class="epoch-badge-dot"></div>
-          <span class="epoch-watermark-text" id="epoch-watermark-label">Cargando...</span>
+          <span class="epoch-watermark-text" id="epoch-watermark-label">${i18n.t('player.epochLoading')}</span>
         </div>
 
         <div class="motion-target-box" id="motion-target-box">
-          <div class="motion-target-label" id="motion-target-label">Objetivo detectado</div>
+          <div class="motion-target-label" id="motion-target-label">${i18n.t('player.motionTarget')}</div>
         </div>
 
         <div class="curtain-divider" id="curtain-divider">
-          <div class="curtain-handle" aria-label="Arrastrar cortina">
+          <div class="curtain-handle" aria-label="${i18n.t('player.curtainHandle')}" data-i18n-aria="player.curtainHandle">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <polyline points="15 18 9 12 15 6"></polyline>
               <polyline points="19 18 13 12 19 6"></polyline>
@@ -88,25 +89,26 @@ export class BlinkPlayer {
             max="3" 
             step="1" 
             value="0"
-            aria-label="Línea temporal de épocas SPHEREx"
+            aria-label="${i18n.t('player.timeline')}"
+            data-i18n-aria="player.timeline"
           />
           <span class="timeline-label" id="timeline-counter-label">1 / 4</span>
         </div>
 
         <div class="playback-buttons-row">
           <div class="playback-main-btns">
-            <button type="button" id="btn-step-prev" class="btn-icon-control touch-target" title="Época anterior">
+            <button type="button" id="btn-step-prev" class="btn-icon-control touch-target" title="${i18n.t('player.prevEpoch')}" aria-label="${i18n.t('player.prevEpoch')}" data-i18n-title="player.prevEpoch" data-i18n-aria="player.prevEpoch">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polygon points="19 20 9 12 19 4 19 20"></polygon>
                 <line x1="5" y1="19" x2="5" y2="5"></line>
               </svg>
             </button>
-            <button type="button" id="btn-play-pause" class="btn-icon-control btn-play-pause touch-target" title="Reproducir / Pausa">
+            <button type="button" id="btn-play-pause" class="btn-icon-control btn-play-pause touch-target" title="${i18n.t('player.playPause')}" aria-label="${i18n.t('player.playPause')}" data-i18n-title="player.playPause" data-i18n-aria="player.playPause">
               <svg id="play-pause-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                 <polygon points="5 3 19 12 5 21 5 3"></polygon>
               </svg>
             </button>
-            <button type="button" id="btn-step-next" class="btn-icon-control touch-target" title="Época siguiente">
+            <button type="button" id="btn-step-next" class="btn-icon-control touch-target" title="${i18n.t('player.nextEpoch')}" aria-label="${i18n.t('player.nextEpoch')}" data-i18n-title="player.nextEpoch" data-i18n-aria="player.nextEpoch">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polygon points="5 4 15 12 5 20 5 4"></polygon>
                 <line x1="19" y1="5" x2="19" y2="19"></line>
@@ -115,7 +117,7 @@ export class BlinkPlayer {
           </div>
 
           <div class="speed-control-group">
-            <span class="speed-meta-label">Velocidad:</span>
+            <span class="speed-meta-label" data-i18n="player.speed">${i18n.t('player.speed')}</span>
             <input 
               type="range" 
               id="speed-slider" 
@@ -124,7 +126,8 @@ export class BlinkPlayer {
               max="4.0" 
               step="0.5" 
               value="${store.getState().fps}"
-              aria-label="Tasa de fotogramas"
+              aria-label="${i18n.t('player.fps')}"
+              data-i18n-aria="player.fps"
             />
             <span class="speed-text" id="speed-display-label">${store.getState().fps.toFixed(1)} fps</span>
           </div>
@@ -155,7 +158,7 @@ export class BlinkPlayer {
       this.updateScrubber();
       this.renderCurrentScene();
     } catch (e) {
-      console.warn("Actualizando consulta:", e);
+      console.warn("Query update:", e);
     }
   }
 
@@ -174,7 +177,7 @@ export class BlinkPlayer {
 
       const f = this.framesData.frames[current];
       if (f) {
-        watermark.textContent = `${f.epoch_label} | MJD ${f.mjd.toFixed(1)}`;
+        watermark.textContent = `${i18n.epochLabel(f)} | MJD ${f.mjd.toFixed(1)}`;
       }
     }
   }
@@ -215,7 +218,7 @@ export class BlinkPlayer {
       this.ctx.fillStyle = "#94a3b8";
       this.ctx.font = "14px sans-serif";
       this.ctx.textAlign = "center";
-      this.ctx.fillText("Procesando datos SPHEREx...", w / 2, h / 2);
+      this.ctx.fillText(i18n.t('player.loading'), w / 2, h / 2);
       return;
     }
 
@@ -388,9 +391,9 @@ export class BlinkPlayer {
       box.style.height = `${size}px`;
 
       const preset = store.getState().activePresetId;
-      label.textContent = preset === 'barnards_star' ? "Desplazamiento propio" :
-                          preset === 'wise_0855' ? "Emisión NIR" :
-                          preset === 'rw_aurigae' ? "Variación fotométrica" : "Objetivo";
+      label.textContent = preset === 'barnards_star' ? i18n.t('player.labelBarnard') :
+                          preset === 'wise_0855' ? i18n.t('player.labelWise') :
+                          preset === 'rw_aurigae' ? i18n.t('player.labelRwAur') : i18n.t('player.labelDefault');
     } else {
       box.style.display = 'none';
     }
@@ -516,6 +519,13 @@ export class BlinkPlayer {
       const px = (e.clientX - rect.left) / rect.width;
       const py = (e.clientY - rect.top) / rect.height;
       window.dispatchEvent(new CustomEvent('grajx:sample-spectrum', { detail: { px, py } }));
+    });
+
+    // Al cambiar de idioma: re-traducir textos estáticos y dinámicos sin recrear el canvas
+    window.addEventListener('grajx:locale-changed', () => {
+      i18n.applyToDOM();
+      this.updateScrubber();
+      this.renderCurrentScene();
     });
 
     store.subscribe('ra', () => this.loadData());

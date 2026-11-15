@@ -3,7 +3,7 @@
  * Modal accesible para Compartir URL e Incrustar visor mediante iframe.
  */
 
-import { store } from '../state.js';
+import { i18n } from '../i18n.js';
 
 export class EmbedModal {
   constructor(container) {
@@ -13,37 +13,42 @@ export class EmbedModal {
 
   init() {
     this.render();
-    this.attachEvents();
+    this.attachGlobalEvents();
+    this.attachDomEvents();
   }
 
   render() {
+    const wasOpen = this.container.querySelector('#embed-modal-backdrop')?.classList.contains('open');
+    const prevUrl = this.container.querySelector('#shareable-url-box')?.textContent || '';
+    const prevIframe = this.container.querySelector('#iframe-code-box')?.textContent || '';
+
     this.container.innerHTML = `
-      <div class="modal-backdrop" id="embed-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-embed-title">
+      <div class="modal-backdrop${wasOpen ? ' open' : ''}" id="embed-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-embed-title">
         <div class="modal-dialog">
           <div class="modal-header">
-            <h3 id="modal-embed-title">Compartir e Incrustar</h3>
-            <button type="button" class="modal-close-btn" id="btn-close-modal" aria-label="Cerrar modal">✕</button>
+            <h3 id="modal-embed-title">${i18n.t('embed.title')}</h3>
+            <button type="button" class="modal-close-btn" id="btn-close-modal" aria-label="${i18n.t('embed.close')}">✕</button>
           </div>
 
           <div class="modal-body">
             <p style="font-size: 13px; color: var(--color-text-secondary);">
-              Enlace directo reproducible o código HTML para incrustar el visor animado de SPHEREx:
+              ${i18n.t('embed.desc')}
             </p>
 
             <label style="font-size: 13px; font-weight: 600; color: var(--color-text-primary);">
-              Enlace directo:
+              ${i18n.t('embed.directLink')}
             </label>
             <div class="code-snippet-box" id="shareable-url-box"></div>
             <button type="button" class="btn-secondary" id="btn-copy-url">
-              Copiar Enlace
+              ${i18n.t('embed.copyLink')}
             </button>
 
             <label style="font-size: 13px; font-weight: 600; color: var(--color-text-primary); margin-top: 6px;">
-              Código para incrustar (&lt;iframe&gt;):
+              ${i18n.t('embed.iframeCode').replace('<', '&lt;').replace('>', '&gt;')}
             </label>
             <div class="code-snippet-box" id="iframe-code-box"></div>
             <button type="button" class="btn-secondary" id="btn-copy-iframe">
-              Copiar Código Iframe
+              ${i18n.t('embed.copyIframe')}
             </button>
           </div>
         </div>
@@ -51,6 +56,12 @@ export class EmbedModal {
 
       <div class="toast-container" id="toast-container"></div>
     `;
+
+    // Conserva el contenido si el modal estaba abierto al cambiar de idioma
+    if (wasOpen) {
+      this.container.querySelector('#shareable-url-box').textContent = prevUrl;
+      this.container.querySelector('#iframe-code-box').textContent = prevIframe;
+    }
   }
 
   open() {
@@ -77,7 +88,9 @@ export class EmbedModal {
     const container = this.container.querySelector('#toast-container');
     const toast = document.createElement('div');
     toast.className = 'toast';
-    toast.innerHTML = `<span>${message}</span>`;
+    const span = document.createElement('span');
+    span.textContent = message;
+    toast.appendChild(span);
     container.appendChild(toast);
 
     setTimeout(() => {
@@ -86,9 +99,22 @@ export class EmbedModal {
     }, 2000);
   }
 
-  attachEvents() {
+  /** Listeners en window: se registran una sola vez. */
+  attachGlobalEvents() {
     window.addEventListener('grajx:open-embed-modal', () => this.open());
 
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') this.close();
+    });
+
+    window.addEventListener('grajx:locale-changed', () => {
+      this.render();
+      this.attachDomEvents();
+    });
+  }
+
+  /** Listeners sobre el DOM del modal: se vuelven a ligar tras cada render. */
+  attachDomEvents() {
     const btnClose = this.container.querySelector('#btn-close-modal');
     const backdrop = this.container.querySelector('#embed-modal-backdrop');
     const btnCopyUrl = this.container.querySelector('#btn-copy-url');
@@ -99,20 +125,16 @@ export class EmbedModal {
       if (e.target === backdrop) this.close();
     });
 
-    window.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') this.close();
-    });
-
     btnCopyUrl.addEventListener('click', () => {
       const text = this.container.querySelector('#shareable-url-box').textContent;
       navigator.clipboard.writeText(text);
-      this.showToast("Enlace copiado al portapapeles");
+      this.showToast(i18n.t('embed.linkCopied'));
     });
 
     btnCopyIframe.addEventListener('click', () => {
       const text = this.container.querySelector('#iframe-code-box').textContent;
       navigator.clipboard.writeText(text);
-      this.showToast("Código iframe copiado al portapapeles");
+      this.showToast(i18n.t('embed.iframeCopied'));
     });
   }
 }

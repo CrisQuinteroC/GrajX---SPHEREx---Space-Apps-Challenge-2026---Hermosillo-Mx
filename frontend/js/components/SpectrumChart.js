@@ -5,6 +5,7 @@
 
 import { store } from '../state.js';
 import { api } from '../api.js';
+import { i18n } from '../i18n.js';
 
 export class SpectrumChart {
   constructor(container) {
@@ -30,8 +31,8 @@ export class SpectrumChart {
   renderSkeleton() {
     this.container.innerHTML = `
       <div class="spectrum-header">
-        <h3>Espectro Infrarrojo (0.75 a 5.0 um)</h3>
-        <span class="preset-badge" id="spectrum-source-badge">102 Bandas LVF</span>
+        <h3 data-i18n="spectrum.title">${i18n.t('spectrum.title')}</h3>
+        <span class="preset-badge" id="spectrum-source-badge" data-i18n="spectrum.badge">${i18n.t('spectrum.badge')}</span>
       </div>
 
       <div class="spectrum-canvas-wrapper" id="spectrum-wrapper">
@@ -65,13 +66,39 @@ export class SpectrumChart {
 
     if (!this.spectrumData) return;
 
-    tagsContainer.innerHTML = this.spectrumData.molecules.map(m => `
-      <span class="molecule-tag" title="Absorción detectada a ${m.wavelength}">
-        ${m.name} (${m.confidence})
-      </span>
-    `).join('');
+    tagsContainer.innerHTML = this.spectrumData.molecules.map(m => {
+      const wl = i18n.num(parseFloat(m.wavelength), 2);
+      return `
+        <span class="molecule-tag" title="${i18n.t('spectrum.absorptionAt', { wl })}">
+          ${this.moleculeName(m)} (${m.confidence})
+        </span>
+      `;
+    }).join('');
 
-    interpText.textContent = this.spectrumData.interpretation;
+    interpText.textContent = this.interpretationText();
+  }
+
+  /** Identificador estable de la molécula (el API actual lo envía; se deduce por nombre como respaldo). */
+  moleculeId(m) {
+    if (m.id) return m.id;
+    const n = (m.name || '').toLowerCase();
+    if (/hielo|ice|glace/.test(n)) return 'water_ice';
+    if (/vapor|vapeur/.test(n)) return 'water_vapor';
+    if (/metano|methane|méthane/.test(n)) return 'methane';
+    if (/di[óo]xi|dioxide|dioxyde|co2|co₂/.test(n)) return 'co2';
+    if (/mon[óo]xi|monoxide|monoxyde|\(co\)/.test(n)) return 'co';
+    return null;
+  }
+
+  moleculeName(m) {
+    const id = this.moleculeId(m);
+    return id && i18n.has(`mol.${id}`) ? i18n.t(`mol.${id}`) : m.name;
+  }
+
+  interpretationText() {
+    const d = this.spectrumData;
+    const id = d.interpretation_id || (/250 K/.test(d.interpretation || '') ? 'cold_body' : 'continuous');
+    return i18n.has(`spectrum.interp.${id}`) ? i18n.t(`spectrum.interp.${id}`) : d.interpretation;
   }
 
   renderChart() {
@@ -113,7 +140,7 @@ export class SpectrumChart {
       this.ctx.fillStyle = "#64748b";
       this.ctx.font = "11px sans-serif";
       this.ctx.textAlign = "center";
-      this.ctx.fillText(`${wl.toFixed(0)} um`, gx, h - 6);
+      this.ctx.fillText(`${wl.toFixed(0)} µm`, gx, h - 6);
     }
 
     const grad = this.ctx.createLinearGradient(padLeft, 0, padLeft + plotW, 0);
@@ -162,7 +189,7 @@ export class SpectrumChart {
     this.ctx.fillStyle = "#00E5FF";
     this.ctx.font = "bold 10px sans-serif";
     this.ctx.textAlign = "center";
-    this.ctx.fillText("H2O Ice", waterX, padTop + 12);
+    this.ctx.fillText(i18n.t('spectrum.waterIce'), waterX, padTop + 12);
   }
 
   attachEvents() {
@@ -171,5 +198,12 @@ export class SpectrumChart {
     });
 
     store.subscribe('ra', () => this.fetchSpectrum());
+
+    // Re-traducir título, moléculas, interpretación y etiquetas del gráfico
+    window.addEventListener('grajx:locale-changed', () => {
+      i18n.applyToDOM();
+      this.renderMolecules();
+      this.renderChart();
+    });
   }
 }
