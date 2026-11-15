@@ -3,6 +3,9 @@
 > **NASA Space Apps Challenge 2026 — Hermosillo, Mx**  
 > A public, interactive web tool for exploring near-infrared sky time series (`0.75–5.0 µm`, 102 spectral channels across 6 LVF detector arrays `D1–D6`) from NASA's **SPHEREx** mission, designed to help astronomers and citizen scientists easily detect moving objects and photometric variability.
 
+**Live demo of CepheusLive:**
+https://grajx-spherex-space-apps-challenge-2026.onrender.com/
+
 <p align="center">
   <img src="./barnards_diff.gif" alt="Example SPHEREx temporal sequence in difference mode (Barnard's Star)" width="360" />
   <br />
