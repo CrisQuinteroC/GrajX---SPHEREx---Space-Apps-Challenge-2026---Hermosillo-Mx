@@ -1,6 +1,7 @@
 /**
  * GrajX — SkySearchBar Component
- * Barra de control: Exploración libre: entrada de coordenadas (RA, Dec) y FOV. Sin selector de objetos.
+ * Barra de control: Selección de objetos desde lista, entrada de coordenadas (RA, Dec) y FOV.
+ * Preparada para recibir listas arbitrarias del backend o fuentes externas.
  */
 
 import { store } from '../state.js';
@@ -21,8 +22,6 @@ export class SkySearchBar {
 
     this.targetList = await api.getPresets();
     this.populateTargetSelect();
-    this.syncInput();
-    this.attachEvents();
   }
 
   renderSkeleton() {
@@ -31,10 +30,10 @@ export class SkySearchBar {
       <div class="search-control-bar">
         <!-- Selector desde Lista de Datos -->
         <div class="control-item control-item-select">
-          <label for="target-list-select" class="control-label">Objeto de la lista:</label>
+          <label for="target-list-select" class="control-label">${i18n.t('search.objectLabel')}</label>
           <div class="select-wrapper">
-            <select id="target-list-select" class="target-select" aria-label="Seleccionar objeto de la lista">
-              <option value="">Cargando lista...</option>
+            <select id="target-list-select" class="target-select" aria-label="${i18n.t('search.objectAria')}">
+              <option value="">${i18n.t('search.objectPlaceholder')}</option>
             </select>
           </div>
         </div>
@@ -82,29 +81,31 @@ export class SkySearchBar {
     if (!select) return;
 
     const currentPreset = store.getState().activePresetId;
+    const isCustom = !currentPreset;
 
     select.innerHTML = `
-      <optgroup label="Objetos disponibles">
+      <optgroup label="${i18n.t('search.optgroupTargets')}">
         ${this.targetList.map(item => `
           <option value="${item.id}" ${item.id === currentPreset ? 'selected' : ''}>
-            ${item.name} (${item.friendly_title})
+            ${item.name} (${i18n.presetText(item, 'title', item.friendly_title)})
           </option>
         `).join('')}
       </optgroup>
-      <optgroup label="Personalizado">
-        <option value="custom">Coordenadas manuales...</option>
+      <optgroup label="${i18n.t('search.optgroupCustom')}">
+        <option value="custom" ${isCustom ? 'selected' : ''}>${i18n.t('search.customOption')}</option>
       </optgroup>
     `;
 
     // Sincronizar input de texto con las coordenadas actuales
     const s = store.getState();
     const input = this.container.querySelector('#sky-search-input');
-    if (input) {
+    if (input && !input.value) {
       input.value = `${s.ra.toFixed(4)}, ${s.dec.toFixed(4)}`;
     }
   }
 
-  attachEvents() {
+  /** Eventos ligados al DOM actual (se vuelven a ligar tras cada render). */
+  attachDomEvents() {
     const select = this.container.querySelector('#target-list-select');
     const input = this.container.querySelector('#sky-search-input');
     const searchBtn = this.container.querySelector('#btn-submit-search');
@@ -121,6 +122,7 @@ export class SkySearchBar {
 
       const item = this.targetList.find(t => t.id === selectedId);
       if (item) {
+        input.removeAttribute('aria-invalid');
         input.value = `${item.ra.toFixed(4)}, ${item.dec.toFixed(4)}`;
         store.setState({
           activePresetId: item.id,
@@ -142,7 +144,7 @@ export class SkySearchBar {
     // Control de slider FOV
     fovSlider.addEventListener('input', (e) => {
       const val = parseFloat(e.target.value);
-      fovPill.textContent = `${val.toFixed(0)}'`;
+      if (fovPill) fovPill.textContent = `${val.toFixed(0)}'`;
       store.setState({ fov: val });
     });
 
@@ -150,44 +152,56 @@ export class SkySearchBar {
     const execute = () => {
       const val = input.value.trim().toLowerCase();
       if (!val) return;
-
-      // Buscar si coincide con el nombre de algún elemento de la lista
-      const matched = this.targetList.find(t => 
-        t.name.toLowerCase().includes(val) || 
-        t.id.toLowerCase().includes(val) ||
-        (t.friendly_title && t.friendly_title.toLowerCase().includes(val)) ||
-        i18n.presetText(t, 'title').toLowerCase().includes(val)
-      );
-      if (matched) {
-        input.value = `${matched.ra.toFixed(4)}, ${matched.dec.toFixed(4)}`;
-        store.setState({
-          activePresetId: matched.id,
-          ra: matched.ra,
-          dec: matched.dec,
-          currentFrameIndex: 0
-        });
-        fovSlider.value = matched.recommended_fov || 5.0;
-        fovPill.textContent = `${(matched.recommended_fov || 5.0).toFixed(0)}'`;
-        return;
-      }
+      input.removeAttribute('aria-invalid');
 
       // Parsear formato numérico "ra, dec" o "ra dec"
-      const parts = val.split(/[\s,]+/);
+      const parts = val.split(/[\s,;]+/);
       if (parts.length >= 2) {
         const parsedRa = parseFloat(parts[0]);
         const parsedDec = parseFloat(parts[1]);
         if (!isNaN(parsedRa) && !isNaN(parsedDec)) {
           select.value = 'custom';
           store.setState({
-            ra: Math.max(0, Math.min(360, parsedRa)),
+            ra: ((parsedRa % 360) + 360) % 360,
             dec: Math.max(-90, Math.min(90, parsedDec)),
-            activePresetId: null
+            activePresetId: null,
+            currentFrameIndex: 0
           });
           return;
         }
       }
 
-      alert("Formato no reconocido. Selecciona de la lista o escribe coordenadas numéricas (ej. 269.45, 4.69).");
+      // Buscar si coincide con el nombre de algún elemento de la lista
+      // (nombre propio, id o título en cualquier idioma)
+      const matched = this.targetList.find(t =>
+        t.name.toLowerCase().includes(val) ||
+        t.id.toLowerCase().includes(val) ||
+        (t.friendly_title && t.friendly_title.toLowerCase().includes(val)) ||
+        i18n.presetText(t, 'title').toLowerCase().includes(val)
+      );
+
+      if (matched) {
+        select.value = matched.id;
+        input.value = `${matched.ra.toFixed(4)}, ${matched.dec.toFixed(4)}`;
+        store.setState({
+          activePresetId: matched.id,
+          ra: matched.ra,
+          dec: matched.dec,
+          fov: matched.recommended_fov || 5.0,
+          mode: matched.recommended_mode || 'diff',
+          detector: matched.recommended_detector || 'all',
+          currentFrameIndex: 0
+        });
+        if (fovSlider && fovPill) {
+          fovSlider.value = matched.recommended_fov || 5.0;
+          fovPill.textContent = `${(matched.recommended_fov || 5.0).toFixed(0)}'`;
+        }
+        return;
+      }
+
+      input.setAttribute('aria-invalid', 'true');
+      input.title = i18n.t('search.formatError');
+      input.focus();
     };
 
     searchBtn.addEventListener('click', execute);
@@ -196,15 +210,16 @@ export class SkySearchBar {
     });
   }
 
-    // Suscribirse al estado externo
+  /** Suscripciones globales: se registran UNA sola vez para no duplicarse al cambiar idioma. */
+  attachGlobalEvents() {
     store.subscribe('activePresetId', (id) => {
-      if (select && id) {
-        select.value = id;
-      }
+      const select = this.container.querySelector('#target-list-select');
+      if (select) select.value = id || 'custom';
     });
 
     store.subscribe('ra', (ra, s) => {
-      if (input && !s.activePresetId) {
+      const input = this.container.querySelector('#sky-search-input');
+      if (input && !s.activePresetId && document.activeElement !== input) {
         input.value = `${s.ra.toFixed(4)}, ${s.dec.toFixed(4)}`;
       }
     });
